@@ -33,6 +33,8 @@ export async function signInWithGoogle() {
   
   try {
     console.log('🔄 Iniciando sesión con Google (popup)...');
+    console.log('📍 Client ID usado:', provider.app.options.projectId);
+    console.log('🌐 Auth domain:', auth.app.options.authDomain);
     const result = await signInWithPopup(auth, provider);
     console.log('✅ signInWithPopup exitoso:', result.user.email);
     return result;
@@ -93,10 +95,14 @@ export const signInWithEmail = async (email, password) => {
   }
 
   try {
+    console.log('🔄 Iniciando sesión con email:', email);
+    console.log('📍 Auth domain:', auth.app.options.authDomain);
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log('✅ Login con email exitoso:', userCredential.user.email);
     return userCredential;
   } catch (error) {
-    console.error('Error signing in with email:', error);
+    console.error('❌ Error signing in with email:', error);
+    console.error('❌ Error completo:', JSON.stringify(error, null, 2));
     throw error;
   }
 };
@@ -118,10 +124,14 @@ export const createUserWithEmail = async (email, password) => {
   }
 
   try {
+    console.log('🔄 Creando usuario con email:', email);
+    console.log('📍 Auth domain:', auth.app.options.authDomain);
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log('✅ Usuario creado exitosamente:', userCredential.user.email);
     return userCredential;
   } catch (error) {
-    console.error('Error creating user with email:', error);
+    console.error('❌ Error creating user with email:', error);
+    console.error('❌ Error completo:', JSON.stringify(error, null, 2));
     throw error;
   }
 };

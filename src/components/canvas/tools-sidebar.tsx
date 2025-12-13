@@ -38,7 +38,6 @@ import {
   UtensilsCrossed,
   Grid3X3,
 } from 'lucide-react';
-import { useMoodboardStore } from '@/components/creative';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -119,38 +118,6 @@ const SidebarButton = forwardRef<
 });
 SidebarButton.displayName = 'SidebarButton';
 
-// Creative Button Component
-function CreativeButton() {
-  const { moodboards, createMoodboard, openMoodboard } = useMoodboardStore();
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <SidebarButton icon={Palette} label="Creative" />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent side="right" align="start" sideOffset={5} className="w-56">
-        <DropdownMenuItem onClick={() => createMoodboard('Nuevo Moodboard')}>
-          <Plus className="mr-2 h-4 w-4" />
-          <span>Nuevo Moodboard</span>
-        </DropdownMenuItem>
-        {moodboards.length > 0 && (
-          <>
-            <DropdownMenuSeparator />
-            <div className="px-2 py-1.5 text-xs text-gray-500 font-medium">
-              Moodboards guardados
-            </div>
-            {moodboards.map((mb) => (
-              <DropdownMenuItem key={mb.id} onClick={() => openMoodboard(mb.id)}>
-                <Palette className="mr-2 h-4 w-4 text-pink-400" />
-                <span className="truncate">{mb.name}</span>
-              </DropdownMenuItem>
-            ))}
-          </>
-        )}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
 
 type ToolsSidebarProps = {
   elements: WithId<CanvasElement>[];
@@ -630,7 +597,6 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
           />
 
 
-          <CreativeButton />
 
           <Popover>
             <PopoverTrigger asChild>

@@ -32,11 +32,6 @@ import RenameBoardDialog from '@/components/canvas/rename-board-dialog';
 import BoardTitleDisplay from '@/components/canvas/board-title-display';
 import GlobalSearch from '@/components/canvas/global-search';
 
-// Creative Moodboard
-import { CreativeMoodboard } from '@/components/creative';
-
-// Panel Moodboard2 lateral derecho
-import MoodboardPanel from '@/components/canvas/moodboard-panel';
 
 // Debug Menu (temporal)
 // QuickAddTask movido al menú principal (tools-sidebar.tsx)
@@ -122,10 +117,6 @@ export default function BoardPageClient({ boardId }: BoardPageClientProps) {
 const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
 const [infoPanelMinimized, setInfoPanelMinimized] = useState(false);
 const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
-const [isMoodboard2Open, setIsMoodboard2Open] = useState(false);
-const [moodboard2Images, setMoodboard2Images] = useState<Array<{id: string; url: string}>>([]);
-const [isMoodboard3Open, setIsMoodboard3Open] = useState(false);
-const [moodboard3Images, setMoodboard3Images] = useState<Array<{id: string; url: string}>>([]);
 
   // Dictado
   const {
@@ -586,25 +577,6 @@ const [moodboard3Images, setMoodboard3Images] = useState<Array<{id: string; url:
           onLocateElement={handleLocateElement}
         />
 
-        {/* Creative Moodboard Panel */}
-        <CreativeMoodboard 
-          addElement={addElement}
-        />
-
-        {/* Panel Moodboard2 lateral derecho */}
-        <MoodboardPanel
-          isOpen={isMoodboard2Open}
-          onToggle={() => setIsMoodboard2Open(!isMoodboard2Open)}
-          onDragImageToCanvas={(imageUrl) => {
-            addElement('image', { content: { url: imageUrl } });
-          }}
-          savedImages={moodboard2Images}
-          onRemoveImage={(imageId) => {
-            setMoodboard2Images(prev => prev.filter(img => img.id !== imageId));
-          }}
-          label="Galería"
-          headerBg="#C4E661"
-        />
 
         {/* Panel flotante de info temporal */}
         <Rnd

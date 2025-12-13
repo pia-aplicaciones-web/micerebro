@@ -671,12 +671,6 @@ export default function ToolsSidebarV2(props: ToolsSidebarV2Props) {
                 Desde URL
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10" />
-              <DropdownMenuItem onClick={() => handleAdd('moodboard')} className="hover:bg-white/10">
-                Moodboard
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAdd('magazine')} className="hover:bg-white/10">
-                Revista
-              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 

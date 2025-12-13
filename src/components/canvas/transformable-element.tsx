@@ -18,8 +18,6 @@ import TodoListElement from './elements/todo-list-element';
 import ImageElement from './elements/image-element';
 import TextElement from './elements/text-element';
 import CommentElement from './elements/comment-element';
-import CommentBubbleElement from './elements/comment-bubble-element';
-import MoodboardElement from './elements/moodboard-element';
 import YellowNotepadElement from './elements/yellow-notepad-element';
 import StopwatchElement from './elements/stopwatch-element';
 import CountdownElement from './elements/countdown-element';
@@ -33,7 +31,6 @@ import LocatorElement from './elements/locator-element';
 import ImageFrameElement from './elements/image-frame-element';
 import PhotoGridElement from './elements/photo-grid-element';
 import CommentSmallElement from './elements/comment-small-element';
-import MagazineElement from './elements/magazine-element';
 import PhotoGridHorizontalElement from './elements/photo-grid-horizontal-element';
 import PhotoGridAdaptiveElement from './elements/photo-grid-adaptive-element';
 import NotesElement from './elements/notes-element';
@@ -46,9 +43,7 @@ const ElementComponentMap: { [key: string]: React.FC<CommonElementProps> } = {
   image: ImageElement,
   text: TextElement,
   comment: CommentElement,
-  'comment-bubble': CommentBubbleElement,
-  'comment-small': CommentBubbleElement, // Usa mismo componente con fontSize diferente
-  moodboard: MoodboardElement,
+  'comment-small': CommentSmallElement,
   'yellow-notepad': YellowNotepadElement,
   stopwatch: StopwatchElement,
   countdown: CountdownElement,
@@ -65,7 +60,6 @@ const ElementComponentMap: { [key: string]: React.FC<CommonElementProps> } = {
   'photo-grid-horizontal': PhotoGridHorizontalElement,
   'photo-grid-adaptive': PhotoGridAdaptiveElement,
   'comment-small': CommentSmallElement,
-  'magazine': MagazineElement,
   'notes': NotesElement,
   'mini-notes': MiniNotesElement,
 };
@@ -363,8 +357,6 @@ export default function TransformableElement({
                   minimized={
                     element.type === 'notepad'
                       ? (element as NotepadCanvasElement).minimized
-                      : element.type === 'comment-bubble'
-                      ? (element as any).minimized
                       : undefined
                   }
                   tags={element.type === 'sticky' ? (element as StickyCanvasElement).tags : undefined}

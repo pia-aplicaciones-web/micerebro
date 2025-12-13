@@ -372,7 +372,7 @@ export default function ContainerElement(
       );
     }
 
-    if (element.type === 'comment' || element.type === 'comment-bubble' || element.type === 'comment-small') {
+    if (element.type === 'comment' || element.type === 'comment-small') {
       const c = (element.content || {}) as any;
       const text = c?.text || c?.label || c?.title || 'Comentario';
       return (

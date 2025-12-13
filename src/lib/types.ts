@@ -23,6 +23,7 @@ export type ElementType =
   'two-columns' |
   'locator' |
   'image-frame' |
+  'magazine' |
   'photo-grid' |
   'photo-grid-horizontal' |
   'photo-grid-adaptive';
@@ -319,7 +320,6 @@ export type ElementContent =
   | LocatorContent
   | MoodboardContent
   | ImageFrameContent
-  | MagazineContent
   | PhotoGridContent
   | Record<string, unknown>;
 

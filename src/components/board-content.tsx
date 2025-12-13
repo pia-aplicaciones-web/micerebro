@@ -20,7 +20,6 @@ import TodoListElement from '@/components/canvas/elements/todo-list-element';
 import CommentElement from '@/components/canvas/elements/comment-element';
 import MoodboardElement from '@/components/canvas/elements/moodboard-element';
 import YellowNotepadElement from '@/components/canvas/elements/yellow-notepad-element';
-import { CreativeMoodboard } from '@/components/creative';
 
 import { useCanvasDragAndDrop } from '@/lib/hooks/useCanvasDragAndDrop';
 import { useSelection } from '@/lib/hooks/useSelection';
@@ -255,8 +254,6 @@ const BoardContent: React.FC<BoardContentProps> = ({
         )}
       </div>
 
-      {/* Creative Moodboard Panel */}
-      <CreativeMoodboard />
     </div>
   );
 };

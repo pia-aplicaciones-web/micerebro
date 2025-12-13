@@ -284,8 +284,7 @@ export const THEME_COLORS = {
   personal: { bg: '#f3e5f5', border: '#7b1fa2', name: 'Personal' },
   urgent: { bg: '#ffebee', border: '#d32f2f', name: 'Urgente' },
   idea: { bg: '#e8f5e8', border: '#388e3c', name: 'Ideas' },
-  meeting: { bg: '#fff3e0', border: '#f57c00', name: 'Reuniones' },
-  creative: { bg: '#fce4ec', border: '#c2185b', name: 'Creativo' }
+  meeting: { bg: '#fff3e0', border: '#f57c00', name: 'Reuniones' }
 };
 
 // Union type para content según el tipo de elemento

@@ -13,7 +13,7 @@ const VALID_ELEMENT_TYPES: ElementType[] = [
   'stopwatch', 'countdown', 'highlight-text',
   'weekly-planner', 'weekly-menu',
   'container', 'two-columns',
-  'locator', 'image-frame', 'magazine',
+  'locator', 'image-frame',
   'photo-grid', 'photo-grid-horizontal', 'photo-grid-adaptive'
 ];
 
@@ -33,7 +33,6 @@ const DEFAULT_DIMENSIONS: Record<string, { width: number; height: number }> = {
   'locator': { width: 120, height: 120 },
   'image-frame': { width: 300, height: 300 },
   'weekly-menu': { width: 756, height: 567 },
-  'magazine': { width: 600, height: 800 },
   'photo-grid': { width: 420, height: 420 },
   'photo-grid-horizontal': { width: 560, height: 360 },
   'photo-grid-adaptive': { width: 480, height: 420 },
@@ -199,17 +198,6 @@ function sanitizeContent(type: ElementType, content: unknown): unknown {
       }
       return { days: {} };
 
-    case 'magazine':
-      if (typeof content === 'object' && content !== null) {
-        const mag = content as Record<string, unknown>;
-        return {
-          title: typeof mag.title === 'string' ? mag.title : 'Mi Revista',
-          pages: Array.isArray(mag.pages) ? mag.pages : [{ id: 'page-1', layout: 'single', images: [] }],
-          currentPage: typeof mag.currentPage === 'number' ? mag.currentPage : 0,
-        };
-      }
-      return { title: 'Mi Revista', pages: [{ id: 'page-1', layout: 'single', images: [] }], currentPage: 0 };
-
     case 'photo-grid':
     case 'photo-grid-horizontal':
     case 'photo-grid-adaptive':
@@ -274,8 +262,6 @@ function getDefaultContent(type: ElementType): unknown {
       return { url: '', zoom: 1, panX: 0, panY: 0, rotation: 0 };
     case 'weekly-menu':
       return { days: {} };
-    case 'magazine':
-      return { title: 'Mi Revista', pages: [{ id: 'page-1', layout: 'single', images: [] }], currentPage: 0 };
     case 'photo-grid':
     case 'photo-grid-horizontal':
     case 'photo-grid-adaptive':

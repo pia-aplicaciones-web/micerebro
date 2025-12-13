@@ -47,7 +47,7 @@ const EXTENDED_PALETTES = {
   sky: { bg: '#42B0DB', text: '#0A3A52', name: 'Cielo' },
   aquaSoft: { bg: '#9ED5DE', text: '#0E3C46', name: 'Aqua' },
   lavenderSoft: { bg: '#CEC5DB', text: '#3A3046', name: 'Lavanda Suave' },
-  sand: { bg: '#DBD393', text: '#4A4320', name: 'Arena' },
+  sandOlive: { bg: '#DBD393', text: '#4A4320', name: 'Arena Oliva' },
 
   // Colores adicionales de otras paletas
   calypso: { bg: '#CAE3E1', text: '#2C3E3D', name: 'Calipso' },

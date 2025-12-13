@@ -33,8 +33,6 @@ export async function signInWithGoogle() {
   
   try {
     console.log('🔄 Iniciando sesión con Google (popup)...');
-    console.log('📍 Client ID usado:', provider.app.options.projectId);
-    console.log('🌐 Auth domain:', auth.app.options.authDomain);
     const result = await signInWithPopup(auth, provider);
     console.log('✅ signInWithPopup exitoso:', result.user.email);
     return result;

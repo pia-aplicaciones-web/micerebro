@@ -1,38 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { initializeApp, getApps, getApp } from 'firebase/app';
-import { 
-  getAuth, 
-  signInWithRedirect, 
-  signInWithPopup,
-  getRedirectResult, 
-  GoogleAuthProvider,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword
-} from 'firebase/auth';
 import { getFirestore, collection, getDocs, addDoc, serverTimestamp, limit, orderBy, doc, setDoc, getDoc, query } from 'firebase/firestore';
 import { Loader2, LogIn, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
-
-// Configuración de Firebase
-const firebaseConfig = {
-  apiKey: "AIzaSyDnDsbb2jVLZmgpfkrpdzA6yTFRpPo2f9c",
-  authDomain: "canvasmind-app.firebaseapp.com",
-  projectId: "canvasmind-app",
-  storageBucket: "canvasmind-app.firebasestorage.app",
-  messagingSenderId: "917199598510",
-  appId: "1:917199598510:web:73840729e1333a07804e3f"
-};
-
-// Inicializar Firebase directamente
-function getFirebaseInstances() {
-  const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-  const auth = getAuth(app);
-  const firestore = getFirestore(app);
-  return { app, auth, firestore };
-}
+import { signInWithGoogle, signInWithEmail, createUserWithEmail } from '@/lib/auth';
+import { getFirebaseFirestore } from '@/lib/firebase';
 
 export default function HomePage() {
   const { toast } = useToast();
@@ -45,13 +19,16 @@ export default function HomePage() {
   const hasProcessedRef = useRef(false);
 
   // Función para redirigir al tablero
-  const redirectToBoard = useCallback(async (user, firestore) => {
+  const redirectToBoard = useCallback(async (user) => {
     if (hasProcessedRef.current || isRedirecting) return;
-    
+
     hasProcessedRef.current = true;
     setIsRedirecting(true);
-    
+
     try {
+      const firestore = getFirebaseFirestore();
+      if (!firestore) throw new Error('Firestore no disponible');
+
       const userDocRef = doc(firestore, 'users', user.uid);
       const userDoc = await getDoc(userDocRef);
       if (!userDoc.exists()) {
@@ -65,7 +42,7 @@ export default function HomePage() {
 
       const boardsCollection = collection(firestore, 'users', user.uid, 'canvasBoards');
       let boardId = null;
-      
+
       try {
         const q = query(boardsCollection, orderBy('updatedAt', 'desc'), limit(1));
         const snapshot = await getDocs(q);
@@ -90,7 +67,7 @@ export default function HomePage() {
       }
 
       window.location.href = `/board/${boardId}/`;
-      
+
     } catch (error) {
       console.error('Error:', error);
       hasProcessedRef.current = false;
@@ -99,73 +76,43 @@ export default function HomePage() {
     }
   }, [isRedirecting, toast]);
 
-  // Verificar redirect de Google y usuario existente al cargar
+  // Verificar usuario existente al cargar
   useEffect(() => {
     const checkAuth = async () => {
       if (hasProcessedRef.current) return;
-      
+
       try {
-        const { auth, firestore } = getFirebaseInstances();
-        
-        // Verificar si hay resultado de redirect
-        const result = await getRedirectResult(auth);
-        if (result?.user) {
-          console.log('✅ Usuario de redirect:', result.user.email);
-          await redirectToBoard(result.user, firestore);
-          return;
-        }
-        
-        // Verificar si ya hay usuario logueado
-        if (auth.currentUser) {
-          console.log('✅ Usuario existente:', auth.currentUser.email);
-          await redirectToBoard(auth.currentUser, firestore);
-        }
+        // Aquí podríamos verificar si ya hay un usuario autenticado
+        // Pero esto se maneja mejor en el AuthContext
       } catch (error) {
         console.error('Error checking auth:', error);
       }
     };
-    
-    checkAuth();
-  }, [redirectToBoard]);
 
-  // Handler de login con Google (usando Popup que es más confiable)
+    checkAuth();
+  }, []);
+
+  // Handler de login con Google
   const handleGoogleLogin = async () => {
     if (isLoggingIn) return;
     setIsLoggingIn(true);
     hasProcessedRef.current = false;
-    
+
     try {
-      const { auth, firestore } = getFirebaseInstances();
-      const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: 'select_account' });
-      
-      console.log('🔄 Abriendo popup de Google...');
-      // Usar signInWithPopup en lugar de signInWithRedirect para mayor compatibilidad
-      const result = await signInWithPopup(auth, provider);
+      console.log('🔄 Iniciando sesión con Google...');
+      const result = await signInWithGoogle();
       console.log('✅ Login Google exitoso:', result.user.email);
-      
+
       if (result?.user) {
-        await redirectToBoard(result.user, firestore);
+        await redirectToBoard(result.user);
       }
     } catch (error) {
       console.error('❌ Error Google:', error);
-      
-      // Si el popup falla, intentar con redirect como fallback
-      if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user') {
-        try {
-          console.log('🔄 Popup bloqueado, usando redirect...');
-          const { auth } = getFirebaseInstances();
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          await signInWithRedirect(auth, provider);
-          return; // No resetear isLoggingIn porque se está redirigiendo
-        } catch (redirectError) {
-          console.error('❌ Error redirect:', redirectError);
-          toast({ variant: 'destructive', title: 'Error', description: 'Error al iniciar sesión con Google.' });
-        }
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: error.message || 'Error al iniciar sesión con Google.' });
-      }
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: error.message || 'Error al iniciar sesión con Google.'
+      });
       setIsLoggingIn(false);
     }
   };
@@ -176,23 +123,21 @@ export default function HomePage() {
     if (isLoggingIn || !email || !password) return;
     setIsLoggingIn(true);
     hasProcessedRef.current = false;
-    
+
     try {
-      const { auth, firestore } = getFirebaseInstances();
-      
       let result;
       if (isCreatingAccount) {
         console.log('🔄 Creando cuenta...');
-        result = await createUserWithEmailAndPassword(auth, email, password);
+        result = await createUserWithEmail(email, password);
         toast({ title: '¡Cuenta creada!', description: 'Bienvenido a Mi Cerebro' });
       } else {
         console.log('🔄 Iniciando sesión con email...');
-        result = await signInWithEmailAndPassword(auth, email, password);
+        result = await signInWithEmail(email, password);
       }
-      
+
       console.log('✅ Login exitoso');
       if (result?.user) {
-        await redirectToBoard(result.user, firestore);
+        await redirectToBoard(result.user);
       }
     } catch (error) {
       console.error('❌ Error:', error);

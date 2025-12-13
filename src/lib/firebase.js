@@ -7,7 +7,7 @@ import { getStorage } from 'firebase/storage';
 // Configuración de Firebase
 export const firebaseConfig = {
   apiKey: "AIzaSyDnDsbb2jVLZmgpfkrpdzA6yTFRpPo2f9c",
-  authDomain: typeof window !== 'undefined' ? window.location.hostname : "canvasmind-app.firebaseapp.com",
+  authDomain: "canvasmind-app.firebaseapp.com", // Dominio fijo de Firebase Hosting
   projectId: "canvasmind-app",
   storageBucket: "canvasmind-app.firebasestorage.app",
   messagingSenderId: "917199598510",

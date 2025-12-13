@@ -584,11 +584,6 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <SidebarButton
-            icon={BookCopy}
-            label="Revista"
-            onClick={() => handleAddElement('magazine')}
-          />
 
           <SidebarButton
             icon={Columns2}

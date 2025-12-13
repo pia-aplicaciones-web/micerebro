@@ -370,31 +370,6 @@ export function useElementManager(boardId: string, getViewportCenter: () => { x:
           updatedAt: serverTimestamp(),
         };
         break;
-      case 'magazine':
-        const magSize = { width: 600, height: 800 };
-        const magPos = getCenteredPosition(magSize.width, magSize.height);
-        newElementData = {
-          type,
-          x: magPos.x,
-          y: magPos.y,
-          width: magSize.width,
-          height: magSize.height,
-          userId,
-          properties: { ...baseProperties, position: magPos, size: magSize },
-          content: {
-            title: 'Mi Revista',
-            pages: [
-              { id: 'page-1', layout: 'single', images: [] },
-              { id: 'page-2', layout: 'double', images: [] },
-              { id: 'page-3', layout: 'grid', images: [] },
-            ],
-            currentPage: 0,
-          },
-          zIndex,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        };
-        break;
       case 'photo-grid':
         const gridSize = { width: 400, height: 400 };
         const gridPos = getCenteredPosition(gridSize.width, gridSize.height);

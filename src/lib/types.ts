@@ -23,7 +23,6 @@ export type ElementType =
   'two-columns' |
   'locator' |
   'image-frame' |
-  'magazine' |
   'photo-grid' |
   'photo-grid-horizontal' |
   'photo-grid-adaptive';

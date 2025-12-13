@@ -34,10 +34,7 @@ const EXTENDED_PALETTES = {
   coffee: { bg: '#D7CCC8', text: '#4E342E', name: 'Café' },
 
   // Océano
-  seafoam: { bg: '#B2DFDB', text: '#004D40', name: 'Espuma' },
-  coral: { bg: '#FFAB91', text: '#D84315', name: 'Coral' },
   navy: { bg: '#90CAF9', text: '#0D47A1', name: 'Marino' },
-  aqua: { bg: '#80DEEA', text: '#006064', name: 'Aqua' },
 
   // Sofisticados
   lavender: { bg: '#D1C4E9', text: '#311B92', name: 'Lavanda' },
@@ -51,18 +48,13 @@ const EXTENDED_PALETTES = {
   aquaSoft: { bg: '#9ED5DE', text: '#0E3C46', name: 'Aqua' },
   lavenderSoft: { bg: '#CEC5DB', text: '#3A3046', name: 'Lavanda Suave' },
   sand: { bg: '#DBD393', text: '#4A4320', name: 'Arena' },
-  amber: { bg: '#E09D22', text: '#4A2F00', name: 'Ámbar' },
-  chartreuse: { bg: '#B8E100', text: '#2E3B00', name: 'Chartreuse' },
-  ocean: { bg: '#1D93CE', text: '#062C3E', name: 'Océano' },
 
   // Colores adicionales de otras paletas
   calypso: { bg: '#CAE3E1', text: '#2C3E3D', name: 'Calipso' },
   lightYellow: { bg: '#FEF08A', text: '#7C4A03', name: 'Amarillo Claro' },
   lightBlue: { bg: '#DBEAFE', text: '#1E3A8A', name: 'Azul Claro' },
-  lightGreen: { bg: '#DCFCE7', text: '#14532D', name: 'Verde Claro' },
   lightPink: { bg: '#FCE7F3', text: '#831843', name: 'Rosa Claro' },
   lightGray: { bg: '#F3F4F6', text: '#374151', name: 'Gris Claro' },
-  lightRose: { bg: '#FCE4EC', text: '#9D174D', name: 'Rosa Suave' },
   skyLight: { bg: '#E0F2FE', text: '#0C4A6E', name: 'Cielo Claro' },
   skyVeryLight: { bg: '#F0F9FF', text: '#0F172A', name: 'Cielo Muy Claro' },
   emeraldVeryLight: { bg: '#ECFDF5', text: '#064E3B', name: 'Esmeralda Muy Claro' },

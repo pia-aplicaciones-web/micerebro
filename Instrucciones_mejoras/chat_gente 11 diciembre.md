@@ -15,3 +15,6 @@ Remover tabs/barras con textos “Todo/Ideas/Tareas/Notas/Referencias/Fechas/Tag
 
 
 Cambios aplicados y desplegados (https://micerebro-bxqspii3h-pias-projects-709add6a.vercel.app
+
+MIcrofono quedo muy bien Guardalo y genera un documento de como recrearlo en caso de fallo// Problema: boton dictar no esta funcionando/ FIX
+//LIsta de tareas debe mantener su ancho predeterminado si el texto del impu es mas largo debe hacer enter en nueva linea(no nueva tarea**)

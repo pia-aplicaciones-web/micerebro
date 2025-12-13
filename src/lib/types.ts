@@ -129,23 +129,6 @@ export interface WeeklyMenuContent {
   days: Record<string, string>;
 }
 
-export interface MagazinePage {
-  id: string;
-  layout: 'single' | 'double' | 'grid';
-  images: Array<{
-    id: string;
-    url: string;
-    caption?: string;
-    x?: number;
-    y?: number;
-  }>;
-}
-
-export interface MagazineContent {
-  title?: string;
-  pages: MagazinePage[];
-  currentPage?: number;
-}
 
 export interface PhotoGridCell {
   id: string;

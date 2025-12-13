@@ -245,14 +245,11 @@ export default function DateTimeWidgetElement(props: CommonElementProps) {
 
 ---
 
-## TAREA 2: Mejorar Templates en Sidebar
-
-**Archivo a modificar:** `src/components/canvas/tools-sidebar-v2.tsx`
-
-### Paso 1: Buscar la función `applyTemplate` y reemplázala completamente con:
+## TAREA 2: Crear boton plantillas- todo con codigo nuevo- buscar codigos completos ya usados si errpres con diseño grafico acorde a la app
+cear funcion applyTemplate2
 
 ```tsx
-const applyTemplate = async (templateType: string) => {
+const applyTemplate2 = async (templateType: string) => {
   const centerX = typeof window !== 'undefined' ? window.innerWidth / 2 : 500;
   const centerY = typeof window !== 'undefined' ? window.innerHeight / 2 : 400;
 

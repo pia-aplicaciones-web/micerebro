@@ -6,6 +6,7 @@ import type { WithId, CanvasElement, ElementType } from '@/lib/types';
 import { useAuthContext } from '@/context/AuthContext';
 import { getFirebaseFirestore } from '@/lib/firebase';
 import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { useBoardStore } from '@/lib/store/boardStore';
 
 type CanvasInteractionsProps = {
   boardId: string;
@@ -30,6 +31,30 @@ export function useCanvasInteractions({
   const [editingComment, setEditingComment] = useState<WithId<CanvasElement> | null>(null);
   const [isConnectorsMenuOpen, setIsConnectorsMenuOpen] = useState(false);
   const fileInputref = useRef<HTMLInputElement>(null);
+
+  const { updateElement } = useBoardStore();
+
+  // Z-INDEX DINÁMICO: Elementos seleccionados pasan a zIndex: 999, otros vuelven a su base
+  useEffect(() => {
+    elements.forEach(element => {
+      const isSelected = selectedElementIds.includes(element.id);
+      const currentZIndex = element.zIndex || 0;
+      let newZIndex = currentZIndex;
+
+      if (isSelected && currentZIndex < 999) {
+        // Elemento seleccionado: zIndex = 999
+        newZIndex = 999;
+      } else if (!isSelected && currentZIndex === 999) {
+        // Elemento deseleccionado: volver a zIndex base (máximo actual - 1 o zIndex original)
+        const maxZIndex = Math.max(...elements.map(el => el.zIndex || 0));
+        newZIndex = Math.max(0, maxZIndex - 1);
+      }
+
+      if (newZIndex !== currentZIndex) {
+        updateElement(element.id, { zIndex: newZIndex });
+      }
+    });
+  }, [selectedElementIds, elements, updateElement]);
 
   const selectedElement = useMemo(() => {
     if (selectedElementIds.length !== 1) return null;

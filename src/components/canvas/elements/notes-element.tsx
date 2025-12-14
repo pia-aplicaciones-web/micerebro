@@ -39,7 +39,7 @@ export default function NotesElement(props: CommonElementProps) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExportingPng, setIsExportingPng] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState((properties as any)?.minimized || false);
 
   // Parsear contenido
   const typedContent = (content || {}) as { text?: string; searchQuery?: string };
@@ -311,10 +311,19 @@ export default function NotesElement(props: CommonElementProps) {
 
 
 
-  // Toggle minimize
+  // Toggle minimize - FIX CRÍTICO: Guardar estado en elemento para persistencia
   const toggleMinimize = useCallback(() => {
-    setIsMinimized(!isMinimized);
-  }, [isMinimized]);
+    const newMinimizedState = !isMinimized;
+    setIsMinimized(newMinimizedState);
+
+    // CRÍTICO: Guardar estado de minimización en el elemento para persistencia
+    onUpdate(id, {
+      properties: {
+        ...properties,
+        minimized: newMinimizedState
+      }
+    });
+  }, [isMinimized, onUpdate, id, properties]);
 
   // Handle delete
   const handleDelete = useCallback(() => {
@@ -366,7 +375,7 @@ export default function NotesElement(props: CommonElementProps) {
             <Grid3x3 className="h-4 w-4" />
           </Button>
           <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight" style={{ color: '#000000' }}>
+            <span className="text-sm font-bold leading-tight" style={{ color: '#F7D946' }}>
               Apuntes
             </span>
           </div>
@@ -400,44 +409,6 @@ export default function NotesElement(props: CommonElementProps) {
             <CalendarDays className="h-4 w-4" />
           </Button>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 hover:bg-black/10 p-0"
-                title="Cambiar color de fondo"
-                style={{ color: '#000000' }}
-              >
-                <Paintbrush className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              onClick={(e) => e.stopPropagation()}
-              className="w-auto p-3 border-none bg-white shadow-xl rounded-xl"
-            >
-              <div className="grid grid-cols-6 gap-2">
-                {Object.entries(EXTENDED_PALETTES).map(([key, palette]) => (
-                  <button
-                    key={key}
-                    onClick={() => handleChangeColor({ hex: key })}
-                    className={cn(
-                      'w-8 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform flex items-center justify-center text-xs font-bold',
-                      backgroundColor === palette.bg && 'ring-2 ring-offset-1 ring-gray-800 scale-110'
-                    )}
-                    style={{
-                      backgroundColor: palette.bg,
-                      color: palette.text,
-                      border: `1px solid ${palette.text}30`
-                    }}
-                    title={palette.name}
-                  >
-                    Aa
-                  </button>
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -520,11 +491,20 @@ export default function NotesElement(props: CommonElementProps) {
             overflowY: 'auto', // Scroll vertical
             userSelect: 'text',
             WebkitUserSelect: 'text',
-            backgroundColor: '#dcefe1',
+            backgroundColor: '#FFFFFF', // Contenedor blanco
+            backgroundImage: 'repeating-linear-gradient(0deg, #F4D62A, #F4D62A 1px, transparent 1px, transparent 20px)', // Líneas horizontales
+            backgroundSize: '100% 21px',
+            paddingTop: '10px',
           }}
         />
       )}
 
+      {/* Numeración de páginas - Abajo centrada */}
+      <div className="flex justify-center items-center py-2 border-t border-gray-200 bg-gray-50">
+        <span className="text-xs text-gray-600 font-medium">
+          Página 1 de 1
+        </span>
+      </div>
 
       {/* Indicador de guardado */}
       {isSelected && (

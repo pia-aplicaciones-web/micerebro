@@ -271,7 +271,7 @@ export default function HomePage() {
 
               {/* Opción Entrar como invitado */}
               <a
-                href="/guest"
+                href="/board/demo/"
                 className="block w-full text-center text-sm text-slate-500 italic hover:text-slate-700 transition-colors py-2"
                 style={{ textDecoration: 'none' }}
               >

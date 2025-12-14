@@ -103,13 +103,13 @@ const SidebarButton = forwardRef<
         className
       )}
       style={{
-        backgroundColor: isDictationActive ? undefined : (isActive ? 'rgba(255, 255, 255, 0.3)' : 'transparent'),
+        backgroundColor: isDictationActive ? undefined : (isActive ? 'rgba(255, 255, 255, 0.3)' : '#000000'),
         color: isDictationActive ? undefined : '#FFFFFF',
         border: '1px solid #FFFFFF',
       }}
       {...props}
     >
-      {children || (Icon && <Icon className={cn('size-[18px]', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#FFFFFF' }} />)}
+      {children || (Icon && <Icon className={cn('w-4 h-4', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#FFFFFF' }} />)}
       <span className={cn('mt-0.5 text-center leading-tight text-[9px]', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#FFFFFF', fontSize: '9px' }}>
         {label}
       </span>
@@ -276,12 +276,11 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
         onDragStop={onDragStop}
         className="z-[10001]"
       >
-        <div 
-          className="rounded-lg shadow-lg border border-white/30 p-2 flex flex-col gap-1"
-          style={{ backgroundColor: '#0b8384' }}
+        <div
+          className="rounded-lg shadow-lg border border-white/30 p-1.5 flex flex-col gap-1 bg-black"
         >
           <div className="drag-handle cursor-grab active:cursor-grabbing py-1 flex justify-center">
-            <GripVertical className="size-5" style={{ color: '#FFFFFF' }} />
+            <GripVertical className="w-4 h-4" style={{ color: '#FFFFFF' }} />
           </div>
           <div className="grid grid-cols-2 gap-1">
 

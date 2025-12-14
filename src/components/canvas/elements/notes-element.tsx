@@ -86,7 +86,7 @@ export default function NotesElement(props: CommonElementProps) {
     sky: { bg: '#42B0DB', text: '#0A3A52', name: 'Cielo' },
     aquaSoft: { bg: '#9ED5DE', text: '#0E3C46', name: 'Aqua' },
     lavenderSoft: { bg: '#CEC5DB', text: '#3A3046', name: 'Lavanda Suave' },
-    sand: { bg: '#DBD393', text: '#4A4320', name: 'Arena' },
+    sandSoft: { bg: '#DBD393', text: '#4A4320', name: 'Arena Suave' },
     amber: { bg: '#E09D22', text: '#4A2F00', name: 'Ámbar' },
     chartreuse: { bg: '#B8E100', text: '#2E3B00', name: 'Chartreuse' },
     ocean: { bg: '#1D93CE', text: '#062C3E', name: 'Océano' },

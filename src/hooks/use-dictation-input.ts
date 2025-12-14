@@ -10,6 +10,7 @@ type DictationTarget =
 type DictationInputParams = {
   elementRef?: DictationTarget;
   isListening?: boolean;
+  liveTranscript?: string;
   finalTranscript?: string;
   interimTranscript?: string;
   isSelected?: boolean;
@@ -26,6 +27,7 @@ export function useDictationInput(params?: DictationInputParams) {
   const {
     elementRef,
     isListening = false,
+    liveTranscript = '',
     finalTranscript = '',
     interimTranscript = '',
     isSelected = true,

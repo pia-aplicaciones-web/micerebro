@@ -43,7 +43,6 @@ import {
   // Comentarios
   MessageCircle,
   MessageSquare,
-  Type,
 } from 'lucide-react';
 import {
   DropdownMenu,

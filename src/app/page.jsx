@@ -270,13 +270,18 @@ export default function HomePage() {
               </Button>
 
               {/* Opción Entrar como invitado */}
-              <a
-                href="/board/demo/"
-                className="block w-full text-center text-sm text-slate-500 italic hover:text-slate-700 transition-colors py-2"
-                style={{ textDecoration: 'none' }}
+              <button
+                onClick={() => {
+                  // Crear ID único para invitado
+                  const guestId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+                  // Ir directamente al tablero de invitado
+                  window.location.href = `/board/${guestId}/`;
+                }}
+                className="w-full text-center text-sm text-slate-500 italic hover:text-slate-700 transition-colors py-2 bg-transparent border-none cursor-pointer"
+                style={{ background: 'none', border: 'none' }}
               >
                 Entrar como invitado
-              </a>
+              </button>
             </div>
           ) : (
             // Formulario de email/password

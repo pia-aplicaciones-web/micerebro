@@ -172,12 +172,17 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
   useEffect(() => {
     if (typeof window === 'undefined' || !boardId) return;
     if (authLoading) return;
-    if (!user?.uid) {
+
+    // Permitir acceso a tableros de invitados sin autenticación
+    const isGuestBoard = boardId.startsWith('guest_');
+    if (!user?.uid && !isGuestBoard) {
       router.replace('/login');
       return;
     }
     
-    const effectiveUserId = user.uid;
+    // Para tableros de invitados, usar el boardId como userId temporal
+    const isGuestBoard = boardId.startsWith('guest_');
+    const effectiveUserId = isGuestBoard ? boardId : user.uid;
     
     // Guard: Prevenir llamadas múltiples si ya está cargando o ya se cargó este tablero
     if (isLoadingRef.current) {

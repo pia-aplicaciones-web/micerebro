@@ -57,3 +57,11 @@ Desktop.ini
 *.bak
 *.backup
 *~
+
+# Development files
+Instrucciones_mejoras/
+SESSION_AUTH_GUIDE_*.md
+SRC_TREE.md
+STATUS_PETICIONES.md
+*.tsbuildinfo
+next-env.d.ts

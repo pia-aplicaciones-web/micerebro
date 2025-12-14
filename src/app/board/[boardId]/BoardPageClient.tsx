@@ -21,7 +21,7 @@ import html2canvas from 'html2canvas';
 
 // Componentes del Canvas
 import Canvas from '@/components/canvas/canvas';
-import ToolsSidebar from '@/components/canvas/tools-sidebar-v2';
+import ToolsSidebar from '@/components/canvas/tools-sidebar';
 import FormattingToolbar from '@/components/canvas/formatting-toolbar';
 
 // Diálogos

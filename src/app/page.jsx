@@ -26,6 +26,22 @@ export default function HomePage() {
     setIsRedirecting(true);
 
     try {
+      // Si es invitado, crear un tablero temporal sin persistencia
+      if (user.isGuest) {
+        const boardId = `guest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        // Guardar información temporal del invitado en localStorage
+        localStorage.setItem('guestUser', JSON.stringify({
+          uid: user.uid,
+          displayName: user.displayName,
+          boardId: boardId,
+          createdAt: new Date().toISOString()
+        }));
+
+        window.location.href = `/board/${boardId}/`;
+        return;
+      }
+
+      // Para usuarios autenticados, usar Firestore normalmente
       const firestore = getFirebaseFirestore();
       if (!firestore) throw new Error('Firestore no disponible');
 
@@ -91,6 +107,13 @@ export default function HomePage() {
 
     checkAuth();
   }, []);
+
+  // Handler para entrar como invitado
+  const handleGuestLogin = () => {
+    console.log('🎯 Botón invitado clickeado!');
+    alert('¡Funciona! El botón fue clickeado.');
+    window.location.href = `/board/guest_test/`;
+  };
 
   // Handler de login con Google
   const handleGoogleLogin = async () => {
@@ -235,16 +258,25 @@ export default function HomePage() {
               </Button>
 
               {/* Botón Crear cuenta */}
-              <Button 
+              <Button
                 onClick={() => { setShowLoginForm(true); setIsCreatingAccount(true); }}
                 variant="outline"
-                size="lg" 
+                size="lg"
                 className="w-full h-12"
                 type="button"
               >
                 <UserPlus className="h-4 w-4 mr-2" />
                 Crear cuenta
               </Button>
+
+              {/* Opción Entrar como invitado */}
+              <a
+                href="/board/guest_test/"
+                className="block w-full text-center text-sm text-slate-500 italic hover:text-slate-700 transition-colors py-2"
+                style={{ textDecoration: 'none' }}
+              >
+                Entrar como invitado
+              </a>
             </div>
           ) : (
             // Formulario de email/password

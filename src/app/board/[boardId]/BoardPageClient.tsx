@@ -181,7 +181,6 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
     }
     
     // Para tableros de invitados, usar el boardId como userId temporal
-    const isGuestBoard = boardId.startsWith('guest_');
     const effectiveUserId = isGuestBoard ? boardId : user.uid;
     
     // Guard: Prevenir llamadas múltiples si ya está cargando o ya se cargó este tablero

@@ -19,7 +19,6 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import {
@@ -39,10 +38,6 @@ export default function YellowNotepadElement(props: CommonElementProps) {
     isSelected,
     isPreview,
     minimized,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
   } = props;
 
   const { toast } = useToast();
@@ -116,32 +111,20 @@ export default function YellowNotepadElement(props: CommonElementProps) {
   // Ref para almacenar el textContent anterior y evitar loops
   const prevTextContentRef = useRef<string>('');
   
-  // Sincronizar contenido desde props
+  // Sincronizar contenido desde props y restaurar al maximizar
   useEffect(() => {
-    // Solo ejecutar si realmente cambió
-    if (prevTextContentRef.current === textContent) {
-      return;
-    }
-    prevTextContentRef.current = textContent;
-    
-    if (contentRef.current && textContent !== contentRef.current.innerText) {
+    if (contentRef.current) {
       const isFocused = document.activeElement === contentRef.current;
-      if (!isFocused) {
+      // Restaurar contenido si no está minimizado y no está enfocado, y el texto de la prop ha cambiado
+      if (!minimized && !isFocused && contentRef.current.innerText !== textContent) {
         contentRef.current.innerText = textContent || '';
+      } else if (minimized && contentRef.current.innerText !== '') {
+        // Cuando se minimiza, el contenido del div puede ser vaciado temporalmente
+        // contentRef.current.innerText = '';
       }
     }
-  }, [textContent]);
+  }, [textContent, minimized]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: contentRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   // Exportar a PNG
   const handleExportToPng = useCallback(async (e: React.MouseEvent) => {
@@ -285,7 +268,7 @@ export default function YellowNotepadElement(props: CommonElementProps) {
     e.preventDefault();
     if (isPreview) return;
 
-    const isMinimized = !!isMinimized;
+    const isCurrentlyMinimized = !!minimized;
     const currentSize = (properties as any)?.size || { width: 400, height: 600 };
 
     // Convertir currentSize a valores numéricos para originalSize
@@ -346,11 +329,11 @@ export default function YellowNotepadElement(props: CommonElementProps) {
         }
       }}
     >
-      {/* Header - Color #e9e490 */}
+      {/* Header - Color amarillo claro */}
       <div
         className="flex items-center justify-between px-4 py-3 drag-handle"
         style={{
-          backgroundColor: '#e9e490',
+          backgroundColor: '#FFF9C4',
           color: '#000000',
         }}
       >
@@ -404,16 +387,6 @@ export default function YellowNotepadElement(props: CommonElementProps) {
             style={{ color: '#000000' }}
           >
             <CalendarDays className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 hover:bg-black/10 p-0"
-            title={isMinimized ? "Maximizar" : "Minimizar"}
-            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); toggleMinimize(e); }}
-            style={{ color: '#000000' }}
-          >
-            {isMinimized ? <Maximize className="h-4 w-4" /> : <Minus className="h-4 w-4" />}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

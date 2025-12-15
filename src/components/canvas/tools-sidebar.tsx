@@ -4,8 +4,7 @@
 import React, { useState, useEffect, useMemo, forwardRef } from 'react';
 import { Rnd } from 'react-rnd';
 import { useRouter } from 'next/navigation';
-import {
-  BookCopy,
+import { BookCopy,
   RectangleHorizontal,
   StickyNote,
   Wrench,
@@ -13,7 +12,6 @@ import {
   FileText,
   Link,
   MoreHorizontal,
-  Mic,
   Move,
   GripVertical,
   Plus,
@@ -37,7 +35,10 @@ import {
   Frame,
   UtensilsCrossed,
   Grid3X3,
+  Mic,
+  MicOff
 } from 'lucide-react';
+import { useMoodboardStore } from '@/components/creative';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -87,91 +88,102 @@ const SidebarButton = forwardRef<
     isActive?: boolean;
   }
 >(({ label, icon: Icon, className, isActive, children, ...props }, ref) => {
-  // Detectar si es el botón de dictado activo (tiene bg-red-500 en className)
   const isDictationActive = className?.includes('bg-red-500');
-  
   return (
     <Button
       ref={ref}
       variant="ghost"
       className={cn(
-        'flex flex-col items-center justify-center h-auto py-2 px-2 w-full text-[11px] gap-1',
-        'hover:bg-white/20 focus-visible:bg-white/20',
-        'text-white border border-white',
-        isActive && 'bg-white/30 text-white hover:bg-white/40',
+        'flex flex-col items-center justify-center h-auto py-[6px] px-[6px] min-w-[65px] text-[10px] gap-1',
+        'hover:bg-gray-700 focus-visible:bg-gray-700',
+        'text-white border border-gray-600 rounded-md',
+        'bg-black',
+        isActive && 'bg-gray-800 border-gray-500',
         !isDictationActive && 'text-white',
         className
       )}
       style={{
-        backgroundColor: isDictationActive ? undefined : (isActive ? 'rgba(255, 255, 255, 0.3)' : '#000000'),
-        color: isDictationActive ? undefined : '#FFFFFF',
-        border: '1px solid #FFFFFF',
+        backgroundColor: isDictationActive ? '#ef4444' : (isActive ? '#374151' : '#000000'),
+        color: '#ffffff',
+        border: `1px solid ${isDictationActive ? '#ef4444' : (isActive ? '#6b7280' : '#4b5563')}`,
       }}
       {...props}
     >
-      {children || (Icon && <Icon className={cn('w-4 h-4', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#FFFFFF' }} />)}
-      <span className={cn('mt-0.5 text-center leading-tight text-[9px]', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#FFFFFF', fontSize: '9px' }}>
+      {children || (Icon && <Icon className={cn('size-[16px] flex-shrink-0', isDictationActive ? 'text-white' : 'text-white')} style={isDictationActive ? undefined : { color: '#ffffff' }} />)}
+      <span className={cn('text-center leading-tight text-[9px] truncate text-white', isDictationActive ? 'text-white' : 'text-white')} style={{ color: '#ffffff', fontSize: '9px' }}>
         {label}
       </span>
     </Button>
   );
 });
+
 SidebarButton.displayName = 'SidebarButton';
 
-
-type ToolsSidebarProps = {
+interface ToolsSidebarProps {
   elements: WithId<CanvasElement>[];
   boards: WithId<Board>[];
   onUploadImage: () => void;
   onAddImageFromUrl: () => void;
   onPanToggle: () => void;
-  isListening?: boolean;
-  onToggleDictation?: () => void;
   onRenameBoard: () => void;
   onDeleteBoard: () => void;
+  isListening: boolean;
+  onToggleDictation: () => void;
   onOpenNotepad: (id: string) => void;
   onLocateElement: (id: string) => void;
-  onAddComment?: () => void;
-  onOpenGlobalSearch?: () => void;
-  addElement: (type: ElementType, props?: any) => Promise<string>;
+  onAddComment: () => void;
+  updateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  selectedElementIds: string[];
+  addElement: (type: ElementType, content?: any) => void;
   clearCanvas: () => void;
   onExportBoardToPng: () => void;
   onFormatToggle: () => void;
   isFormatToolbarOpen: boolean;
-  isPanningActive?: boolean;
-  updateElement?: (id: string, updates: Partial<CanvasElement>) => Promise<void> | void;
-  selectedElementIds?: string[];
-};
+  onOpenGlobalSearch: () => void;
+  canvasScrollPosition: number;
+  canvasScale: number;
+  isGalleryPanelOpen: boolean;
+  onToggleGalleryPanel: () => void;
+}
 
-export default function ToolsSidebar(props: ToolsSidebarProps) {
-  const {
-    elements,
-    boards,
-    onUploadImage,
-    onAddImageFromUrl,
-    onPanToggle,
-    isListening = false,
-    onToggleDictation,
-    onRenameBoard,
-    onDeleteBoard,
-    onOpenNotepad,
-    onLocateElement,
-    addElement,
-    clearCanvas,
-    onExportBoardToPng,
-    onFormatToggle,
-    isFormatToolbarOpen,
-    isPanningActive = false,
-    updateElement,
-    selectedElementIds = [],
-  } = props;
-
-  const { user } = useAuthContext() as any;
+const ToolsSidebar = forwardRef<HTMLDivElement, ToolsSidebarProps>(({
+  elements,
+  boards,
+  onUploadImage,
+  onAddImageFromUrl,
+  onPanToggle,
+  onRenameBoard,
+  onDeleteBoard,
+  isListening,
+  onToggleDictation,
+  onOpenNotepad,
+  onLocateElement,
+  onAddComment,
+  updateElement,
+  selectedElementIds,
+  addElement,
+  clearCanvas,
+  onExportBoardToPng,
+  onFormatToggle,
+  isFormatToolbarOpen,
+  onOpenGlobalSearch,
+  canvasScrollPosition,
+  canvasScale,
+  isGalleryPanelOpen,
+  onToggleGalleryPanel,
+}, ref) => {
   const { toast } = useToast();
   const router = useRouter();
   const isMobile = useMediaQuery('(max-width: 768px)');
   const [isCreateBoardOpen, setIsCreateBoardOpen] = useState(false);
-  const [rndPosition, setRndPosition] = useState({ x: 20, y: 80 });
+  const [rndPosition, setRndPosition] = useState(() => {
+    // Posición inicial centrada en la parte superior
+    if (typeof window !== 'undefined') {
+      const centerX = (window.innerWidth - 750) / 2; // 750 es el ancho del menú
+      return { x: Math.max(0, centerX), y: 20 };
+    }
+    return { x: 20, y: 20 };
+  });
   useEffect(() => {
     try {
       const savedPosition = localStorage.getItem('toolsSidebarPosition');
@@ -194,7 +206,7 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
   };
 
   const elementsOnCanvas = useMemo(
-    () => (Array.isArray(elements) ? elements : []).filter((el) => ['notepad', 'yellow-notepad', 'notes'].includes(el.type) && el.hidden !== true),
+    () => (Array.isArray(elements) ? elements : []).filter((el) => ['notepad', 'yellow-notepad', 'notes', 'mini-notes', 'mini'].includes(el.type) && el.hidden !== true),
     [elements]
   );
 
@@ -205,7 +217,7 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
 
 
   const hiddenNotepads = useMemo(
-    () => (Array.isArray(elements) ? elements : []).filter((el) => el.type === 'notepad' && el.hidden === true),
+    () => (Array.isArray(elements) ? elements : []).filter((el) => ['notepad', 'yellow-notepad', 'mini-notes', 'mini'].includes(el.type) && el.hidden === true),
     [elements]
   );
 
@@ -266,27 +278,25 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
         default={{
           x: rndPosition.x,
           y: rndPosition.y,
-          width: 144,
-          height: 'auto',
+          width: 750,
+          height: 80,
         }}
-        minWidth={144}
-        maxWidth={144}
+        minWidth={750}
+        maxWidth={900}
         bounds="window"
         dragHandleClassName="drag-handle"
         onDragStop={onDragStop}
         className="z-[10001]"
       >
-        <div
-          className="rounded-lg shadow-lg border border-white/30 p-1.5 flex flex-col gap-1 bg-black"
-        >
-          <div className="drag-handle cursor-grab active:cursor-grabbing py-1 flex justify-center">
-            <GripVertical className="w-4 h-4" style={{ color: '#FFFFFF' }} />
+        <div className="flex flex-row gap-[3.5px] flex-nowrap justify-start p-2">
+          <div className="drag-handle cursor-grab active:cursor-grabbing py-1 px-2 mr-2 rounded-md bg-black border border-gray-600 flex justify-center" title="Arrastrar menú">
+            <GripVertical className="size-4 rotate-90 text-white" />
           </div>
-          <div className="grid grid-cols-2 gap-1">
 
+          {/* Tableros */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={LayoutDashboard} label="Tableros" />
+              <SidebarButton icon={LayoutDashboard} label="Tableros" title="Gestionar tableros" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5}>
               <DropdownMenuItem onClick={() => setIsCreateBoardOpen(true)}>
@@ -310,19 +320,16 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Botón Dictar */}
           <SidebarButton
-            icon={Mic}
+            icon={isListening ? MicOff : Mic}
             label={isListening ? 'Detener' : 'Dictar'}
+            title={isListening ? 'Detener dictado por voz' : 'Iniciar dictado por voz'}
             onClick={(e) => {
               e.preventDefault();
+              e.stopPropagation();
               if (onToggleDictation) {
                 onToggleDictation();
-              } else {
-                toast({
-                  variant: 'destructive',
-                  title: 'Dictado no disponible',
-                  description: 'No se encontró la acción de dictado.',
-                });
               }
             }}
             onMouseDown={(e) => e.preventDefault()}
@@ -331,9 +338,10 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             )}
           />
 
+          {/* Cuaderno */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={BookCopy} label="Cuaderno" />
+              <SidebarButton icon={BookCopy} label="Cuaderno" title="Gestionar cuadernos y notas" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5}>
               <DropdownMenuItem onClick={() => handleAddElement('notepad')}>
@@ -347,6 +355,14 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
               <DropdownMenuItem onClick={() => handleAddElement('notes')}>
                 <Plus className="mr-2 h-4 w-4" />
                 <span>Agregar Apuntes</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddElement('mini-notes')}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Mini Notes</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddElement('mini')}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Mini</span>
               </DropdownMenuItem>
               {elementsOnCanvas.length > 0 && (
                 <>
@@ -368,6 +384,12 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
                             break;
                           case 'notes':
                             title = 'Apuntes';
+                            break;
+                          case 'mini-notes':
+                            title = 'Mini Notas';
+                            break;
+                          case 'mini':
+                            title = 'Mini';
                             break;
                           default:
                             title = 'Elemento';
@@ -407,9 +429,10 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Notas */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={StickyNote} label="Notas" />
+              <SidebarButton icon={StickyNote} label="Notas" title="Crear notas adhesivas" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5}>
               {stickyNoteColors.map((color) => (
@@ -421,37 +444,21 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarButton icon={MessageCircle} label="Burbuja" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start" sideOffset={5}>
-              {[
-                { key: 'yellow', label: 'Amarillo pastel', backgroundColor: '#fff9c4' },
-                { key: 'white', label: 'Blanco', backgroundColor: '#ffffff' },
-              ].map((option) => (
-                <DropdownMenuItem
-                  key={option.key}
-                  onClick={() =>
-                    handleAddElement('comment-bubble', {
-                      properties: { backgroundColor: option.backgroundColor },
-                      content: { text: '' },
-                    })
-                  }
-                >
-                  <div
-                    className="w-4 h-4 rounded-sm border border-slate-300 mr-2"
-                    style={{ backgroundColor: option.backgroundColor }}
-                  />
-                  <span>{option.label}</span>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {/* To-do */}
+          <SidebarButton icon={List} label="To-do" title="Crear lista de tareas" onClick={() => handleAddElement('todo')} />
 
+          {/* Contenedor */}
+          <SidebarButton
+            icon={Columns2}
+            label="Contenedor"
+            title="Crear contenedor para elementos"
+            onClick={() => handleAddElement('container')}
+          />
+
+          {/* Localizador */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={MapPin} label="Localizador" />
+              <SidebarButton icon={MapPin} label="Localizador" title="Gestionar localizadores" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5} className="w-56">
               <DropdownMenuItem onClick={() => handleAddElement('locator')}>
@@ -481,11 +488,27 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <SidebarButton icon={List} label="To-do" onClick={() => handleAddElement('todo')} />
-
+          {/* Imagen */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={CalendarRange} label="Mi Plan" />
+              <SidebarButton icon={ImageIcon} label="Imagen" title="Agregar imágenes" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent side="right" align="start" sideOffset={5}>
+              <DropdownMenuItem onClick={onAddImageFromUrl}>
+                <LinkIcon className="mr-2 h-4 w-4" />
+                <span>Desde URL</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={onUploadImage}>
+                <Upload className="mr-2 h-4 w-4" />
+                <span>Subir</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Mi Plan */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarButton icon={CalendarRange} label="Mi Plan" title="Herramientas de planificación" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5} className="w-52">
               <DropdownMenuItem
@@ -512,39 +535,35 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <SidebarButton icon={Wrench} label="Tools" onClick={onFormatToggle} isActive={isFormatToolbarOpen} />
-
+          {/* Guía Fotos */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={ImageIcon} label="Imagen" />
+              <SidebarButton
+                icon={Grid3X3}
+                label="Guía Fotos"
+                title="Herramientas para organizar fotos"
+              />
             </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start" sideOffset={5}>
-              <DropdownMenuItem onClick={onAddImageFromUrl}>
-                <LinkIcon className="mr-2 h-4 w-4" />
-                <span>Desde URL</span>
+            <DropdownMenuContent side="right" align="start" sideOffset={5} className="w-44">
+              <DropdownMenuItem onClick={() => handleAddElement('photo-grid')}>
+                Cuadrada
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onUploadImage}>
-                <Upload className="mr-2 h-4 w-4" />
-                <span>Subir</span>
+              <DropdownMenuItem onClick={() => handleAddElement('photo-grid-horizontal')}>
+                Horizontal
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddElement('photo-grid-adaptive')}>
+                Adaptable
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleAddElement('image-frame')}>
+                Marco de fotos
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <SidebarButton 
-            icon={Images} 
-            label="Moodboard" 
-            onClick={() => handleAddElement('moodboard')} 
-          />
-
-          <SidebarButton 
-            icon={Frame}
-            label="Frame"
-            onClick={() => handleAddElement('image-frame')}
-          />
-
+          {/* Comentario */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={MessageCircle} label="Comentario" />
+              <SidebarButton icon={MessageCircle} label="Comentario" title="Agregar comentarios y texto" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5}>
               <DropdownMenuLabel>Insertar</DropdownMenuLabel>
@@ -563,73 +582,30 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <SidebarButton
-                icon={Grid3X3}
-                label="Guía Fotos"
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" align="start" sideOffset={5} className="w-44">
-              <DropdownMenuItem onClick={() => handleAddElement('photo-grid')}>
-                Cuadrada
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement('photo-grid-horizontal')}>
-                Horizontal
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAddElement('photo-grid-adaptive')}>
-                Adaptable
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-
-          <SidebarButton
-            icon={Columns2}
-            label="Contenedor"
-            onClick={() => handleAddElement('container')}
+          {/* Moodboard */}
+          <SidebarButton 
+            icon={Images} 
+            label="Moodboard" 
+            title="Crear tablero de inspiración"
+            onClick={() => handleAddElement('moodboard')} 
           />
 
+          {/* Galería */}
+          <SidebarButton
+            icon={LayoutGrid}
+            label="Galería"
+            title={isGalleryPanelOpen ? "Ocultar panel de galería" : "Mostrar panel de galería"}
+            isActive={isGalleryPanelOpen}
+            onClick={() => onToggleGalleryPanel?.()}
+          />
 
+          {/* Tools */}
+          <SidebarButton icon={Wrench} label="Tools" title="Herramientas de formato" onClick={onFormatToggle} isActive={isFormatToolbarOpen} />
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <SidebarButton icon={FileText} label="Texto" />
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-3 m-2">
-              <div className="text-xs text-gray-600 mb-2">Color de fondo</div>
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { name: 'white', value: '#ffffff', label: 'Blanco' },
-                  { name: 'yellow', value: '#fffb8b', label: 'Amarillo' },
-                  { name: 'pink', value: '#ffc2d4', label: 'Rosa' },
-                  { name: 'blue', value: '#bce8f1', label: 'Azul' },
-                  { name: 'green', value: '#d4edda', label: 'Verde' },
-                  { name: 'orange', value: '#ffeeba', label: 'Naranja' },
-                  { name: 'purple', value: '#e9d5ff', label: 'Morado' },
-                ].map((color) => (
-                  <button
-                    key={color.name}
-                    className="w-8 h-8 rounded border border-gray-300 hover:scale-110 transition-transform"
-                    style={{ backgroundColor: color.value }}
-                    onClick={() => handleAddElement('text', {
-                      properties: {
-                        backgroundColor: color.value
-                      }
-                    })}
-                    title={color.label}
-                  />
-                ))}
-              </div>
-            </PopoverContent>
-          </Popover>
-
-
-          {/* Temas, Redactor AI, Recordatorios, Ideas, Colores removidos */}
-
+          {/* Más */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <SidebarButton icon={MoreHorizontal} label="Más" />
+              <SidebarButton icon={MoreHorizontal} label="Más" title="Más opciones" />
             </DropdownMenuTrigger>
             <DropdownMenuContent side="right" align="start" sideOffset={5}>
               <DropdownMenuItem onClick={onFormatToggle}>
@@ -698,10 +674,13 @@ export default function ToolsSidebar(props: ToolsSidebarProps) {
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          </div>
         </div>
       </Rnd>
 
     </>
   );
-}
+});
+
+ToolsSidebar.displayName = 'ToolsSidebar';
+
+export default ToolsSidebar;

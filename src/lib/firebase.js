@@ -4,14 +4,14 @@ import { getAuth, setPersistence, browserSessionPersistence } from 'firebase/aut
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Configuración de Firebase - Usando variables de entorno
+// Configuración de Firebase
 export const firebaseConfig = {
-  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
-  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  apiKey: "AIzaSyDnDsbb2jVLZmgpfkrpdzA6yTFRpPo2f9c",
+  authDomain: "canvasmind-app.firebaseapp.com",
+  projectId: "canvasmind-app",
+  storageBucket: "canvasmind-app.firebasestorage.app",
+  messagingSenderId: "917199598510",
+  appId: "1:917199598510:web:73840729e1333a07804e3f"
 };
 
 // Inicializar Firebase solo en el cliente

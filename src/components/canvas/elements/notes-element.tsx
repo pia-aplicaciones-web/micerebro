@@ -5,11 +5,10 @@ import type { CommonElementProps } from '@/lib/types';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { GripVertical, Search, Trash2, FileImage, MoreVertical, Grid3x3, CalendarDays, Minus, X, Paintbrush } from 'lucide-react';
+import { GripVertical, Search, Trash2, FileImage, MoreVertical, Grid3x3, CalendarDays, Minus, X, Paintbrush, Edit, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import {
@@ -29,17 +28,13 @@ export default function NotesElement(props: CommonElementProps) {
     deleteElement,
     isSelected,
     isPreview,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
   } = props;
 
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExportingPng, setIsExportingPng] = useState(false);
-  const [isMinimized, setIsMinimized] = useState((properties as any)?.minimized || false);
+  const [isMinimized, setIsMinimized] = useState(false);
 
   // Parsear contenido
   const typedContent = (content || {}) as { text?: string; searchQuery?: string };
@@ -86,7 +81,7 @@ export default function NotesElement(props: CommonElementProps) {
     sky: { bg: '#42B0DB', text: '#0A3A52', name: 'Cielo' },
     aquaSoft: { bg: '#9ED5DE', text: '#0E3C46', name: 'Aqua' },
     lavenderSoft: { bg: '#CEC5DB', text: '#3A3046', name: 'Lavanda Suave' },
-    sandSoft: { bg: '#DBD393', text: '#4A4320', name: 'Arena Suave' },
+    sand: { bg: '#DBD393', text: '#4A4320', name: 'Arena' },
     amber: { bg: '#E09D22', text: '#4A2F00', name: 'Ámbar' },
     chartreuse: { bg: '#B8E100', text: '#2E3B00', name: 'Chartreuse' },
     ocean: { bg: '#1D93CE', text: '#062C3E', name: 'Océano' },
@@ -158,26 +153,21 @@ export default function NotesElement(props: CommonElementProps) {
   // Ref para almacenar el textContent anterior y evitar loops
   const prevTextContentRef = useRef<string>('');
 
-  // Sincronizar contenido desde props
+  // Sincronizar contenido desde props y restaurar al maximizar
   useEffect(() => {
-    if (contentRef.current && text !== contentRef.current.innerText) {
+    if (contentRef.current) {
       const isFocused = document.activeElement === contentRef.current;
-      if (!isFocused) {
+      // Restaurar contenido si no está minimizado y no está enfocado, y el texto de la prop ha cambiado
+      if (!isMinimized && !isFocused && contentRef.current.innerText !== text) {
         contentRef.current.innerText = text || '';
+      } else if (isMinimized && contentRef.current.innerText !== '') {
+        // Cuando se minimiza, el contenido del div puede ser vaciado temporalmente para evitar que se vea
+        // No es estrictamente necesario, pero evita que el contenido se muestre si el div no está oculto visualmente
+        // contentRef.current.innerText = ''; 
       }
     }
-  }, [text]);
+  }, [text, isMinimized]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: contentRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   // Exportar a PNG
   const handleExportToPng = useCallback(async (e: React.MouseEvent) => {
@@ -360,7 +350,7 @@ export default function NotesElement(props: CommonElementProps) {
       <div
         className="flex items-center justify-between px-4 py-3 drag-handle"
         style={{
-          backgroundColor: backgroundColor,
+          backgroundColor: '#F7D946',
           color: '#000000',
         }}
       >
@@ -375,7 +365,17 @@ export default function NotesElement(props: CommonElementProps) {
             <Grid3x3 className="h-4 w-4" />
           </Button>
           <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight" style={{ color: '#F7D946' }}>
+            <span
+              className="text-sm font-bold leading-tight cursor-text select-none"
+              style={{ color: '#000000' }}
+              contentEditable={!isPreview}
+              suppressContentEditableWarning
+              onInput={(e) => {
+                const newTitle = e.currentTarget.textContent || 'Apuntes';
+                // Aquí puedes agregar lógica para guardar el título si es necesario
+              }}
+              onFocus={() => onUpdate(id, { isSelected: true })}
+            >
               Apuntes
             </span>
           </div>
@@ -409,6 +409,44 @@ export default function NotesElement(props: CommonElementProps) {
             <CalendarDays className="h-4 w-4" />
           </Button>
 
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 hover:bg-black/10 p-0"
+                title="Cambiar color de fondo"
+                style={{ color: '#000000' }}
+              >
+                <Paintbrush className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              onClick={(e) => e.stopPropagation()}
+              className="w-auto p-3 border-none bg-white shadow-xl rounded-xl"
+            >
+              <div className="grid grid-cols-6 gap-2">
+                {Object.entries(EXTENDED_PALETTES).map(([key, palette]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleChangeColor({ hex: key })}
+                    className={cn(
+                      'w-8 h-8 rounded-lg shadow-sm hover:scale-110 transition-transform flex items-center justify-center text-xs font-bold',
+                      backgroundColor === palette.bg && 'ring-2 ring-offset-1 ring-gray-800 scale-110'
+                    )}
+                    style={{
+                      backgroundColor: palette.bg,
+                      color: palette.text,
+                      border: `1px solid ${palette.text}30`
+                    }}
+                    title={palette.name}
+                  >
+                    Aa
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -425,6 +463,14 @@ export default function NotesElement(props: CommonElementProps) {
               <DropdownMenuItem onMouseDown={(e) => {e.preventDefault(); e.stopPropagation(); handleExportToPng(e)}} disabled={isExportingPng}>
                 <FileImage className="mr-2 h-4 w-4" />
                 <span>{isExportingPng ? 'Exportando...' : 'Exportar a PNG: alta resolución'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onMouseDown={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Cambiar título</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onMouseDown={(e) => {e.preventDefault(); e.stopPropagation();}}>
+                <Plus className="mr-2 h-4 w-4" />
+                <span>Agregar nueva página</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -484,17 +530,17 @@ export default function NotesElement(props: CommonElementProps) {
           )}
           style={{
             fontFamily: "'Poppins', sans-serif",
-            fontSize: '11px',
-            lineHeight: '1.5',
+            fontSize: '14px', // Tamaño solicitado
+            lineHeight: '24px', // Interlineado preciso de 24px para alineación perfecta
             color: '#000000',
             height: '300px', // Altura fija
             overflowY: 'auto', // Scroll vertical
             userSelect: 'text',
             WebkitUserSelect: 'text',
             backgroundColor: '#FFFFFF', // Contenedor blanco
-            backgroundImage: 'repeating-linear-gradient(0deg, #F4D62A, #F4D62A 1px, transparent 1px, transparent 20px)', // Líneas horizontales
-            backgroundSize: '100% 21px',
-            paddingTop: '10px',
+            backgroundImage: 'linear-gradient(#e2e8f0 1px, transparent 1px)', // Líneas horizontales
+            backgroundSize: '100% 24px', // Tamaño exacto de las líneas
+            paddingTop: '8px', // Ajustar texto sobre la línea del cuaderno
           }}
         />
       )}

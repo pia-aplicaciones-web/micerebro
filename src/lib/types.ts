@@ -14,6 +14,7 @@ export type ElementType =
   'moodboard' |
   'yellow-notepad' |
   'mini-notes' |
+  'mini' |
   'stopwatch' |
   'countdown' |
   'highlight-text' |
@@ -284,7 +285,8 @@ export const THEME_COLORS = {
   personal: { bg: '#f3e5f5', border: '#7b1fa2', name: 'Personal' },
   urgent: { bg: '#ffebee', border: '#d32f2f', name: 'Urgente' },
   idea: { bg: '#e8f5e8', border: '#388e3c', name: 'Ideas' },
-  meeting: { bg: '#fff3e0', border: '#f57c00', name: 'Reuniones' }
+  meeting: { bg: '#fff3e0', border: '#f57c00', name: 'Reuniones' },
+  creative: { bg: '#fce4ec', border: '#c2185b', name: 'Creativo' }
 };
 
 // Union type para content según el tipo de elemento
@@ -342,10 +344,6 @@ export interface CommonElementProps {
     onDoubleClick?: (rect: DOMRect) => void;
     allElements?: WithId<CanvasElement>[];
     isPreview?: boolean;
-    isListening?: boolean;
-    liveTranscript?: string;
-    finalTranscript?: string;
-    interimTranscript?: string;
     onUngroup?: (elementId: string) => void;
     onLocateElement: (elementId: string) => void;
     onEditComment: (element: WithId<CanvasElement>) => void;

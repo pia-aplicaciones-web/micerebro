@@ -61,7 +61,7 @@ const EXTENDED_PALETTES = {
 };
 
 export default function QuoteElement(props: CommonElementProps) {
-  const { id, content, properties, isSelected, onUpdate, deleteElement, isListening, liveTranscript, finalTranscript, interimTranscript, isPreview, onSelectElement } = props;
+  const { id, content, properties, isSelected, onUpdate, deleteElement, isPreview, onSelectElement } = props;
   
   const safeProperties: CanvasElementProperties = typeof properties === 'object' && properties !== null ? properties : {};
   const bgColor = safeProperties.backgroundColor || COLOR_PALETTE[0].value;
@@ -79,14 +79,6 @@ export default function QuoteElement(props: CommonElementProps) {
     debounceMs: 2000,
   });
 
-  useDictationInput({
-    elementRef: editorRef,
-    isListening: isListening || false,
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   return (
     <div className="w-full h-full flex flex-col rounded-lg shadow-md overflow-hidden" style={{ backgroundColor: bgColor }}>

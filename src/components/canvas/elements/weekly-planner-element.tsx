@@ -17,7 +17,6 @@ import {
 import { startOfWeek, addDays, format, addWeeks, subWeeks } from 'date-fns';
 import { es } from 'date-fns/locale';
 import html2canvas from 'html2canvas';
-// import { useDictationBinding } from '@/hooks/use-dictation-binding';
 
 const DAY_META = [
   { key: 'mon', label: 'LUNES', color: '#16b5a3' },
@@ -31,7 +30,7 @@ const DAY_META = [
 ];
 
 export default function WeeklyPlannerElement(props: CommonElementProps) {
-  const { id, content, properties, isSelected, onUpdate, deleteElement, isListening, finalTranscript, interimTranscript, isPreview, onSelectElement } = props;
+  const { id, content, properties, isSelected, onUpdate, deleteElement, isPreview, onSelectElement } = props;
   
   const safeProperties: CanvasElementProperties = typeof properties === 'object' && properties !== null ? properties : {};
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -41,11 +40,6 @@ export default function WeeklyPlannerElement(props: CommonElementProps) {
     return saved ? new Date(saved) : startOfWeek(new Date(), { weekStartsOn: 1 });
   });
   // const { bindDictationTarget } = useDictationBinding({
-  //   isListening,
-  //   finalTranscript,
-  //   interimTranscript,
-  //   isSelected,
-  // });
 
   // Navegar semanas
   const handlePrevWeek = () => {

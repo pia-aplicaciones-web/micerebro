@@ -16,9 +16,6 @@ export default function CommentSmallElement(props: CommonElementProps) {
     onSelectElement,
     onUpdate,
     deleteElement,
-    isListening,
-    finalTranscript,
-    interimTranscript,
     isPreview,
   } = props;
 
@@ -27,13 +24,6 @@ export default function CommentSmallElement(props: CommonElementProps) {
 
   const textRef = useRef<HTMLTextAreaElement>(null);
 
-  useDictationInput({
-    elementRef: textRef,
-    isListening,
-    finalTranscript,
-    interimTranscript,
-    isSelected: isSelected ?? true,
-  });
 
   return (
     <Card

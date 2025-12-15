@@ -8,7 +8,6 @@ import { cn } from '@/lib/utils';
 import ContentEditable, { ContentEditableEvent } from 'react-contenteditable';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 
 // Acepta CommonElementProps
 export default function TextElement(props: CommonElementProps) {
@@ -19,10 +18,6 @@ export default function TextElement(props: CommonElementProps) {
     onUpdate,
     onEditElement,
     isSelected,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
   } = props;
 
   const editorRef = useRef<HTMLDivElement>(null);
@@ -100,16 +95,6 @@ export default function TextElement(props: CommonElementProps) {
     }
   }, [textContent]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: editorRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   const handleContentChange = (e: ContentEditableEvent) => {
     // Programar auto-save con debounce

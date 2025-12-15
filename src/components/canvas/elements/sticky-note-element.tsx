@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -12,7 +11,6 @@ import { Paintbrush, GripVertical, Plus, X, RotateCw, Minus, Maximize, FileImage
 import { Button } from '@/components/ui/button';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 import html2canvas from 'html2canvas';
 
 const COLORS = [
@@ -96,10 +94,6 @@ export default function StickyNoteElement(props: CommonElementProps) {
     deleteElement,
     isPreview,
     minimized,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
   } = props;
 
   const safeProperties: CanvasElementProperties = typeof properties === 'object' && properties !== null ? properties : {};
@@ -111,8 +105,9 @@ export default function StickyNoteElement(props: CommonElementProps) {
 
   const editorRef = useRef<HTMLDivElement>(null);
   
-  // Type guard para content: sticky notes usan string
-  const textContent = typeof content === 'string' ? content : '';
+   // Type guard para content: sticky notes usan un objeto con una propiedad de texto
+   const typedContent = (content || {}) as { text: string };
+   const textContent = typedContent.text || '';
 
   // Hook de autoguardado robusto
   const { saveStatus, handleBlur: handleAutoSaveBlur, handleChange } = useAutoSave({
@@ -140,40 +135,27 @@ export default function StickyNoteElement(props: CommonElementProps) {
   // Ref para almacenar el contenido anterior y evitar loops
   const prevContentRef = useRef<string>('');
   
+  // Sincronizar contenido desde props y restaurar al maximizar
   useEffect(() => {
-    // CRÍTICO: Solo actualizar si NO está enfocado (preservar cursor y formato)
     if (editorRef.current) {
       const isFocused = document.activeElement === editorRef.current;
-      
-      // Solo actualizar si realmente cambió
-      if (prevContentRef.current === textContent) {
-        return;
-      }
-      prevContentRef.current = textContent;
-      
-      if (!isFocused) {
-        // Usar helper para preservar cursor y formato
+      // Restaurar contenido si no está minimizado y no está enfocado, y el texto de la prop ha cambiado
+      if (!minimized && !isFocused && editorRef.current.innerHTML !== textContent) {
+        // Usar helper para preservar cursor y formato si hay HTML
         const { updateInnerHTMLPreservingCursor } = require('@/lib/cursor-helper');
         const hasHTML = /<[^>]+>/.test(textContent);
         if (hasHTML) {
           updateInnerHTMLPreservingCursor(editorRef.current, textContent);
         } else {
-          updateInnerHTMLPreservingCursor(editorRef.current, textContent || '');
+          editorRef.current.innerText = textContent || ''; // Si es texto plano, simplemente actualizar innerText
         }
+      } else if (minimized && editorRef.current.innerHTML !== '') {
+        // Cuando se minimiza, el contenido del div puede ser vaciado temporalmente
+        // editorRef.current.innerHTML = '';
       }
     }
-  }, [textContent]);
+  }, [textContent, minimized]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: editorRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   const handleContentChange = () => {
     // Programar auto-save con debounce

@@ -9,7 +9,6 @@ import { GripVertical, Search, Trash2, FileImage, MoreVertical, Grid3x3, Calenda
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 import { cn } from '@/lib/utils';
 import html2canvas from 'html2canvas';
 import {
@@ -28,16 +27,15 @@ export default function MiniNotesElement(props: CommonElementProps) {
     deleteElement,
     isSelected,
     isPreview,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
+    width,
+    height,
   } = props;
 
   const { toast } = useToast();
   const contentRef = useRef<HTMLDivElement>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExportingPng, setIsExportingPng] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
+  const [isMinimized, setIsMinimized] = useState((properties as any)?.minimized || false);
 
   // Parsear contenido
   const typedContent = (content || {}) as { text?: string; searchQuery?: string };
@@ -102,31 +100,20 @@ export default function MiniNotesElement(props: CommonElementProps) {
   // Ref para almacenar el textContent anterior y evitar loops
   const prevTextContentRef = useRef<string>('');
 
-  // Sincronizar contenido desde props
+  // Sincronizar contenido desde props y restaurar al maximizar
   useEffect(() => {
-    // Solo ejecutar si realmente cambió
-    if (prevTextContentRef.current === textContent) {
-      return;
-    }
-    prevTextContentRef.current = textContent;
-
-    if (contentRef.current && textContent !== contentRef.current.innerText) {
+    if (contentRef.current) {
       const isFocused = document.activeElement === contentRef.current;
-      if (!isFocused) {
+      // Restaurar contenido si no está minimizado y no está enfocado, y el texto de la prop ha cambiado
+      if (!isMinimized && !isFocused && contentRef.current.innerText !== textContent) {
         contentRef.current.innerText = textContent || '';
+      } else if (isMinimized && contentRef.current.innerText !== '') {
+        // Cuando se minimiza, el contenido del div puede ser vaciado temporalmente
+        // contentRef.current.innerText = '';
       }
     }
-  }, [textContent]);
+  }, [textContent, isMinimized]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: contentRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: false, // isListening is not passed as a prop, so it's always false here
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   // Exportar a PNG
   const handleExportToPng = useCallback(async (e: React.MouseEvent) => {
@@ -151,7 +138,7 @@ export default function MiniNotesElement(props: CommonElementProps) {
       });
 
       const canvas = await html2canvas(notesCard, {
-        backgroundColor: '#f9fb6a',
+        backgroundColor: '#ECFDF5', // Esmeralda muy claro
         scale: 2.1, // Alta resolución reducida 30% (de 3x a 2.1x)
         useCORS: true,
         logging: false,
@@ -243,10 +230,19 @@ export default function MiniNotesElement(props: CommonElementProps) {
     handleChange();
   }, [handleChange]);
 
-  // Toggle minimize
+  // Toggle minimize - FIX CRÍTICO: Guardar estado en elemento para persistencia
   const toggleMinimize = useCallback(() => {
-    setIsMinimized(!isMinimized);
-  }, [isMinimized]);
+    const newMinimizedState = !isMinimized;
+    setIsMinimized(newMinimizedState);
+
+    // CRÍTICO: Guardar estado de minimización en el elemento para persistencia
+    onUpdate(id, {
+      properties: {
+        ...properties,
+        minimized: newMinimizedState
+      }
+    });
+  }, [isMinimized, onUpdate, id, properties]);
 
   // Handle delete
   const handleDelete = useCallback(() => {
@@ -262,11 +258,13 @@ export default function MiniNotesElement(props: CommonElementProps) {
         isMinimized ? 'h-12' : 'h-full'
       )}
       style={{
-        backgroundColor: '#f9fb6a',
+        backgroundColor: '#ECFDF5', // Esmeralda muy claro
         borderRadius: '4px',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        width: '227px', // 6 cm ≈ 227px
-        height: isMinimized ? '48px' : '378px', // 10 cm ≈ 378px
+        width: width || 320, // Nuevo tamaño más compacto
+        height: isMinimized ? 48 : (height || 460), // Nuevo alto más compacto
+        outline: 'none', // Quitar línea azul de afuera
+        border: 'none', // Asegurar que no haya borde
       }}
       onMouseDown={(e) => {
         // CRÍTICO: Solo activar drag si el clic NO es en el área de texto editable
@@ -285,7 +283,7 @@ export default function MiniNotesElement(props: CommonElementProps) {
       <div
         className="flex items-center justify-between px-4 py-3 drag-handle"
         style={{
-          backgroundColor: '#f9fb6a',
+          backgroundColor: '#ECFDF5', // Esmeralda muy claro
           color: '#000000',
         }}
       >
@@ -300,7 +298,17 @@ export default function MiniNotesElement(props: CommonElementProps) {
             <Grid3x3 className="h-4 w-4" />
           </Button>
           <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight" style={{ color: '#000000' }}>
+            <span
+              className="text-sm font-bold leading-tight cursor-text select-none"
+              style={{ color: '#000000' }}
+              contentEditable={!isPreview}
+              suppressContentEditableWarning
+              onInput={(e) => {
+                const newTitle = e.currentTarget.textContent || 'Mini Notas';
+                // Aquí puedes agregar lógica para guardar el título si es necesario
+              }}
+              onFocus={() => onUpdate(id, { isSelected: true })}
+            >
               Mini Notas
             </span>
           </div>
@@ -412,11 +420,12 @@ export default function MiniNotesElement(props: CommonElementProps) {
             minHeight: '200px',
             userSelect: 'text',
             WebkitUserSelect: 'text',
-            backgroundColor: '#f9fb6a',
-            // Sin formato especial - texto plano como .txt
-            fontFamily: 'monospace', // Fuente monoespaciada típica de archivos .txt
-            fontSize: '14px',
-            lineHeight: '1.2',
+            backgroundColor: '#ECFDF5', // Esmeralda muy claro
+            backgroundImage: 'linear-gradient(#ADD8E6 1px, transparent 1px)', // Líneas horizontales azules
+            backgroundSize: '100% 18px', // Interlineado ajustado para el nuevo tamaño
+            fontFamily: 'Monaco, Menlo, "Ubuntu Mono", monospace', // Tipografía monospace para Mini Notas
+            fontSize: '12px', // Tipografía monospace 12px
+            lineHeight: '1.2', // Interlineado sencillo
             whiteSpace: 'pre-wrap',
             border: 'none',
             outline: 'none',

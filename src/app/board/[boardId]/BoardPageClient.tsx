@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, ChevronRight } from 'lucide-react';
 import { Rnd } from 'react-rnd';
 
 // Hooks y Contextos
@@ -21,8 +21,9 @@ import html2canvas from 'html2canvas';
 
 // Componentes del Canvas
 import Canvas from '@/components/canvas/canvas';
-import ToolsSidebar from '@/components/canvas/tools-sidebar-v2';
+import ToolsSidebar from '@/components/canvas/tools-sidebar';
 import FormattingToolbar from '@/components/canvas/formatting-toolbar';
+import GalleryPanel from '@/components/canvas/gallery-panel';
 
 // Diálogos
 import AddImageFromUrlDialog from '@/components/canvas/elements/add-image-from-url-dialog';
@@ -37,7 +38,8 @@ import GlobalSearch from '@/components/canvas/global-search';
 // QuickAddTask movido al menú principal (tools-sidebar.tsx)
 // import QuickAddTask from '@/components/canvas/quick-add-task';
 
-// Hook de dictado
+// Hooks de dictado
+import { useSpeechToText } from '@/hooks/use-speech-to-text';
 import { useDictation } from '@/hooks/use-dictation';
 
 interface BoardPageClientProps {
@@ -114,22 +116,14 @@ export default function BoardPageClient({ boardId }: BoardPageClientProps) {
   const [isDirty, setIsDirty] = useState(false);
   const [isEditCommentDialogOpen, setIsEditCommentDialogOpen] = useState(false);
   const [selectedCommentForEdit, setSelectedCommentForEdit] = useState<WithId<CanvasElement> | null>(null);
-const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
+  const [isGlobalSearchOpen, setIsGlobalSearchOpen] = useState(false);
 const [infoPanelMinimized, setInfoPanelMinimized] = useState(false);
-const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
+  const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
+  const [isGalleryPanelOpen, setIsGalleryPanelOpen] = useState(true);
 
-  // Dictado
-  const {
-    isListening: isDictationListening,
-    finalTranscript,
-    interimTranscript,
-    toggle: toggleDictation,
-    stop: stopDictation,
-  } = useDictation();
-  const liveTranscript = interimTranscript
-    ? `${finalTranscript} ${interimTranscript}`.trim()
-    : finalTranscript;
-  const dictationPreview = interimTranscript || finalTranscript;
+  // Dictado global - CURSOR MANDA
+  const { isListening, transcript, interimTranscript, toggleListening } = useSpeechToText();
+  useDictation(isListening, transcript, interimTranscript);
 
   // Funciones auxiliares
   const getViewportCenter = useCallback(() => {
@@ -172,16 +166,12 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
   useEffect(() => {
     if (typeof window === 'undefined' || !boardId) return;
     if (authLoading) return;
-
-    // Permitir acceso a tableros de invitados sin autenticación
-    const isGuestBoard = boardId.startsWith('guest_');
-    if (!user?.uid && !isGuestBoard) {
+    if (!user?.uid) {
       router.replace('/login');
       return;
     }
     
-    // Para tableros de invitados, usar el boardId como userId temporal
-    const effectiveUserId = isGuestBoard ? boardId : user.uid;
+    const effectiveUserId = user.uid;
     
     // Guard: Prevenir llamadas múltiples si ya está cargando o ya se cargó este tablero
     if (isLoadingRef.current) {
@@ -492,10 +482,6 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
           activatedElementId={activatedElementId}
           isMobile={isMobile}
           setIsDirty={setIsDirty}
-          isListening={isDictationListening}
-          liveTranscript={liveTranscript}
-          finalTranscript={finalTranscript}
-          interimTranscript={interimTranscript}
           onBringToFront={() => {}}
           onSendToBack={() => {}}
           onMoveBackward={() => {}}
@@ -517,8 +503,8 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
           onPanToggle={() => canvasRef.current?.activatePanMode()}
           onRenameBoard={() => setIsRenameBoardDialogOpen(true)}
           onDeleteBoard={handleDeleteBoard}
-          isListening={isDictationListening}
-          onToggleDictation={toggleDictation}
+          isListening={isListening}
+          onToggleDictation={toggleListening}
           onOpenNotepad={handleOpenNotepad}
           onLocateElement={handleLocateElement}
           onAddComment={handleAddMarker}
@@ -532,6 +518,8 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
           onOpenGlobalSearch={() => setIsGlobalSearchOpen(true)}
           canvasScrollPosition={canvasRef.current?.getTransform().x || 0}
           canvasScale={canvasRef.current?.getTransform().scale || 1}
+          isGalleryPanelOpen={isGalleryPanelOpen}
+          onToggleGalleryPanel={() => setIsGalleryPanelOpen(!isGalleryPanelOpen)}
         />
 
         <FormattingToolbar
@@ -649,6 +637,45 @@ const [infoPanelPos, setInfoPanelPos] = useState({ x: 24, y: 24 });
           </div>
         </Rnd>
       </div>
+
+      {/* Panel de Galería */}
+      {isGalleryPanelOpen && (
+        <GalleryPanel
+          allElements={elements}
+          onUpdate={updateElement}
+          onDelete={deleteElement}
+          onLocateElement={handleLocateElement}
+          onEditElement={(id) => {
+            const elementToEdit = elements.find(el => el.id === id);
+            if (elementToEdit) {
+              setSelectedElement(elementToEdit);
+            }
+          }}
+          onActivateDrag={setActivatedElementId}
+          activatedElementId={activatedElementId}
+          unanchorElement={(id) => updateElement(id, { parentId: undefined })}
+          onClose={() => setIsGalleryPanelOpen(false)}
+        />
+      )}
+
+      {/* Pestaña para abrir Galería cuando está cerrada */}
+      {!isGalleryPanelOpen && (
+        <div
+          className="fixed left-0 z-[1000]"
+          style={{
+            top: '50%',
+            transform: 'translateY(-50%)'
+          }}
+        >
+          <button
+            onClick={() => setIsGalleryPanelOpen(true)}
+            className="bg-green-500 hover:bg-green-600 text-white rounded-r-lg shadow-lg px-3 py-8 flex items-center justify-center transition-all duration-200"
+            title="Abrir galería"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </button>
+        </div>
+      )}
     </>
   );
 }

@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 'use client';
 
 import React, { useCallback, useState } from 'react';
@@ -18,6 +17,8 @@ import TodoListElement from './elements/todo-list-element';
 import ImageElement from './elements/image-element';
 import TextElement from './elements/text-element';
 import CommentElement from './elements/comment-element';
+import CommentBubbleElement from './elements/comment-bubble-element';
+import MoodboardElement from './elements/moodboard-element';
 import YellowNotepadElement from './elements/yellow-notepad-element';
 import StopwatchElement from './elements/stopwatch-element';
 import CountdownElement from './elements/countdown-element';
@@ -35,6 +36,7 @@ import PhotoGridHorizontalElement from './elements/photo-grid-horizontal-element
 import PhotoGridAdaptiveElement from './elements/photo-grid-adaptive-element';
 import NotesElement from './elements/notes-element';
 import MiniNotesElement from './elements/mini-notes-element';
+import MiniElement from './elements/mini-element';
 
 const ElementComponentMap: { [key: string]: React.FC<CommonElementProps> } = {
   notepad: NotepadElement,
@@ -43,7 +45,9 @@ const ElementComponentMap: { [key: string]: React.FC<CommonElementProps> } = {
   image: ImageElement,
   text: TextElement,
   comment: CommentElement,
-  'comment-small': CommentSmallElement,
+  'comment-bubble': CommentBubbleElement,
+  'comment-small': CommentBubbleElement, // Usa mismo componente con fontSize diferente
+  moodboard: MoodboardElement,
   'yellow-notepad': YellowNotepadElement,
   stopwatch: StopwatchElement,
   countdown: CountdownElement,
@@ -62,6 +66,7 @@ const ElementComponentMap: { [key: string]: React.FC<CommonElementProps> } = {
   'comment-small': CommentSmallElement,
   'notes': NotesElement,
   'mini-notes': MiniNotesElement,
+  'mini': MiniElement,
 };
 
 type TransformableElementProps = {
@@ -90,8 +95,8 @@ type TransformableElementProps = {
   onUngroup: (groupId: string) => void;
   setIsDirty: (isDirty: boolean) => void;
   boardId: string;
-  isListening: boolean;
-  liveTranscript: string;
+  isListening?: boolean;
+  liveTranscript?: string;
   finalTranscript?: string;
   interimTranscript?: string;
 };
@@ -149,8 +154,8 @@ export default function TransformableElement({
   boardId,
   isListening,
   liveTranscript,
-  finalTranscript = '',
-  interimTranscript = '',
+  finalTranscript,
+  interimTranscript,
 }: TransformableElementProps) {
   
   const element = migrateElement(initialElement);
@@ -165,7 +170,7 @@ export default function TransformableElement({
   const size = elementProps.size || { width: element.width || 200, height: element.height || 150 };
   const rotation = elementProps.rotation ?? element.rotation ?? 0;
   // REGLAS GENERALES: Elementos de cuadernos inician con zIndex -1, pasan al frente cuando se seleccionan
-  const isNotebookElement = ['notepad', 'yellow-notepad', 'notes', 'mini-notes', 'container', 'two-columns'].includes(element.type);
+  const isNotebookElement = ['notepad', 'yellow-notepad', 'notes', 'mini-notes', 'mini', 'container', 'two-columns'].includes(element.type);
   const baseZIndex = isNotebookElement ? -1 : (elementProps.zIndex ?? element.zIndex ?? 1);
   const zIndex = isSelected ? 999 : baseZIndex;
   
@@ -349,7 +354,7 @@ export default function TransformableElement({
                   height={size.height as number}
                   rotation={rotation}
                   zIndex={zIndex}
-                  content={element.content}
+                  content={element.type === 'sticky' && typeof element.content === 'string' ? { text: element.content } : element.content}
                   properties={element.properties}
                   color={element.color}
                   backgroundColor={element.backgroundColor}
@@ -357,6 +362,8 @@ export default function TransformableElement({
                   minimized={
                     element.type === 'notepad'
                       ? (element as NotepadCanvasElement).minimized
+                      : element.type === 'comment-bubble'
+                      ? (element as any).minimized
                       : undefined
                   }
                   tags={element.type === 'sticky' ? (element as StickyCanvasElement).tags : undefined}
@@ -383,12 +390,12 @@ export default function TransformableElement({
                   setIsDirty={() => {}}
                   scale={scale}
                   offset={offset}
-                  boardId={boardId}
-                  isListening={isListening}
-                  liveTranscript={liveTranscript}
-                  finalTranscript={finalTranscript}
-                  interimTranscript={interimTranscript}
-              />
+              boardId={boardId}
+              isListening={isListening}
+              liveTranscript={liveTranscript}
+              finalTranscript={finalTranscript}
+              interimTranscript={interimTranscript}
+          />
         </div>
       </Rnd>
       

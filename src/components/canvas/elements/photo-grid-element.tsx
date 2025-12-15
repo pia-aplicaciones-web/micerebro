@@ -21,7 +21,6 @@ import {
   EyeOff,
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
-// import { useDictationBinding } from '@/hooks/use-dictation-binding';
 
 function isPhotoGridContent(content: unknown): content is PhotoGridContent {
   return typeof content === 'object' && content !== null && 'rows' in content && 'columns' in content;
@@ -82,9 +81,6 @@ export default function PhotoGridElement(props: CommonElementProps) {
     deleteElement,
     isPreview,
     minimized,
-    isListening,
-    finalTranscript,
-    interimTranscript,
   } = props;
 
   const safeProperties = typeof properties === 'object' && properties !== null ? properties : {};
@@ -242,38 +238,39 @@ export default function PhotoGridElement(props: CommonElementProps) {
     const isCurrentlyMinimized = !!minimized;
     const currentSize = (properties as any)?.size || { width: 400, height: 400 };
 
-    // Convertir currentSize a valores numéricos para originalSize
     const currentSizeNumeric = {
       width: typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 400,
       height: typeof currentSize.height === 'number' ? currentSize.height : parseFloat(String(currentSize.height)) || 400,
     };
 
     if (isCurrentlyMinimized) {
-        // Restaurar: recuperar tamaño original
-        const { originalSize, ...restProps } = (properties || {}) as any;
-        const restoredSize = originalSize || { width: 400, height: 400 };
-        const newProperties = {
-          ...restProps,
-          size: restoredSize
-        };
+      const { originalSize, ...restProps } = (properties || {}) as any;
+      const restoredSize = originalSize || { width: 400, height: 400 };
+      const newProperties = {
+        ...restProps,
+        size: restoredSize
+      };
 
-        onUpdate(id, {
-            minimized: false,
-            properties: newProperties,
-        });
+      onUpdate(id, {
+        minimized: false,
+        properties: newProperties,
+        content: gridContent, // Asegurar que el contenido se preserve
+      });
     } else {
-        // Minimizar: guardar tamaño actual y reducir altura
-        const currentWidth = typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 400;
-        onUpdate(id, {
-            minimized: true,
-            properties: {
-              ...properties,
-              size: { width: currentWidth, height: 48 },
-              originalSize: currentSizeNumeric
-            },
-        });
+      // Guardar el contenido actual antes de minimizar
+      const updatedContent = { ...gridContent }; // No hay texto directo, pero se pasa el objeto completo
+      const currentWidth = typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 400;
+      onUpdate(id, {
+        minimized: true,
+        properties: {
+          ...properties,
+          size: { width: currentWidth, height: 48 },
+          originalSize: currentSizeNumeric
+        },
+        content: updatedContent, // Guardar el contenido actualizado
+      });
     }
-  }, [isPreview, minimized, properties, onUpdate, id]);
+  }, [isPreview, minimized, properties, onUpdate, id, gridContent]);
 
   return (
     <Card

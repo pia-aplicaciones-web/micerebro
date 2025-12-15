@@ -150,38 +150,39 @@ export default function ImageFrameElement(props: CommonElementProps) {
     const isCurrentlyMinimized = !!minimized;
     const currentSize = (properties as any)?.size || { width: 300, height: 300 };
 
-    // Convertir currentSize a valores numéricos para originalSize
     const currentSizeNumeric = {
       width: typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 300,
       height: typeof currentSize.height === 'number' ? currentSize.height : parseFloat(String(currentSize.height)) || 300,
     };
 
     if (isCurrentlyMinimized) {
-        // Restaurar: recuperar tamaño original
-        const { originalSize, ...restProps } = (properties || {}) as any;
-        const restoredSize = originalSize || { width: 300, height: 300 };
-        const newProperties = {
-          ...restProps,
-          size: restoredSize
-        };
+      const { originalSize, ...restProps } = (properties || {}) as any;
+      const restoredSize = originalSize || { width: 300, height: 300 };
+      const newProperties = {
+        ...restProps,
+        size: restoredSize
+      };
 
-        onUpdate(id, {
-            minimized: false,
-            properties: newProperties,
-        });
+      onUpdate(id, {
+        minimized: false,
+        properties: newProperties,
+        content: frameContent, // Asegurar que el contenido se preserve
+      });
     } else {
-        // Minimizar: guardar tamaño actual y reducir altura
-        const currentWidth = typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 300;
-        onUpdate(id, {
-            minimized: true,
-            properties: {
-              ...properties,
-              size: { width: currentWidth, height: 48 },
-              originalSize: currentSizeNumeric
-            },
-        });
+      // Guardar el contenido actual antes de minimizar
+      const updatedContent = { ...frameContent }; // No hay texto directo, pero se pasa el objeto completo
+      const currentWidth = typeof currentSize.width === 'number' ? currentSize.width : parseFloat(String(currentSize.width)) || 300;
+      onUpdate(id, {
+        minimized: true,
+        properties: {
+          ...properties,
+          size: { width: currentWidth, height: 48 },
+          originalSize: currentSizeNumeric
+        },
+        content: updatedContent, // Guardar el contenido actualizado
+      });
     }
-  }, [isPreview, minimized, properties, onUpdate, id]);
+  }, [isPreview, minimized, properties, onUpdate, id, frameContent]);
 
   return (
     <Card

@@ -1,6 +1,4 @@
-// @ts-nocheck
 'use client';
-
 import React, { useEffect, useRef, useCallback, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import type { CommonElementProps, NotepadContent, CanvasElementProperties } from '@/lib/types';
@@ -27,7 +25,6 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import ExportPdfDialog from './export-pdf-dialog';
 import './notepad-element.css';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 
 
 export default function NotepadElement(props: CommonElementProps) {
@@ -39,10 +36,6 @@ export default function NotepadElement(props: CommonElementProps) {
     deleteElement,
     isPreview = false, 
     onFormatToggle, 
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
     isSelected,
     minimized,
     onChangeNotepadFormat,
@@ -70,7 +63,8 @@ export default function NotepadElement(props: CommonElementProps) {
   const titleRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-  
+
+
   const [isExportingPng, setIsExportingPng] = useState(false);
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [isExportPdfDialogOpen, setIsExportPdfDialogOpen] = useState(false);
@@ -127,16 +121,6 @@ export default function NotepadElement(props: CommonElementProps) {
     }
   }, [typedContent.text]);
 
-  // Soporte para dictado usando hook helper
-  useDictationInput({
-    elementRef: contentRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
   
   const handleTitleFocus = useCallback(() => {
     if (isPreview) return;
@@ -561,7 +545,7 @@ export default function NotepadElement(props: CommonElementProps) {
                     )}
                     <Button variant="ghost" size="icon" className="size-7" title="Insertar Fecha" onClick={handleInsertDate}><CalendarDays className="size-4"/></Button>
                     <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-7"><MoreVertical className="size-4" /></Button></DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="size-7" title="Más opciones"><MoreVertical className="size-4" /></Button></DropdownMenuTrigger>
                       <DropdownMenuContent>
                           <DropdownMenuItem onMouseDown={(e) => {e.preventDefault(); e.stopPropagation(); handleExportNotepadToPng(e)}} disabled={isExportingPng}>
                               <FileImage className="mr-2 h-4 w-4" />
@@ -586,8 +570,7 @@ export default function NotepadElement(props: CommonElementProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <Button variant="ghost" size="icon" className="size-7" title={minimized ? "Maximizar" : "Minimizar"} onMouseDown={(e) => {e.preventDefault(); e.stopPropagation(); toggleMinimize(e)}}>{minimized ? <Maximize className="size-4" /> : <Minus className="size-4" />}</Button>
-                    
+
                     <Button 
                         variant="ghost" 
                         size="icon" 

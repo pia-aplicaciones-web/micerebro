@@ -37,11 +37,7 @@ type CanvasProps = {
   onDuplicateElement: (elementId: string) => void;
   onUngroup: (id: string) => void;
   setIsDirty: (isDirty: boolean) => void;
-  isMobile: boolean;
-  isListening: boolean;
-  liveTranscript: string;
-  finalTranscript?: string;
-  interimTranscript?: string;
+    isMobile: boolean;
 };
 
 type CanvasHandle = {
@@ -94,10 +90,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   onUngroup,
   setIsDirty,
   isMobile,
-  isListening,
-  liveTranscript,
-  finalTranscript,
-  interimTranscript,
 }, ref) => {
   const [scale, setScale] = useState(1);
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -597,10 +589,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
                       onUngroup={onUngroup}
                       setIsDirty={setIsDirty}
                       boardId={board.id}
-                      isListening={isListening}
-                      liveTranscript={liveTranscript}
-                      finalTranscript={finalTranscript}
-                      interimTranscript={interimTranscript}
                     />
                   );
                 })}

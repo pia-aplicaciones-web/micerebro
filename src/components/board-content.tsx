@@ -1,4 +1,3 @@
-// @ts-nocheck
 // src/components/board-content.tsx
 
 'use client'; 
@@ -254,6 +253,7 @@ const BoardContent: React.FC<BoardContentProps> = ({
         )}
       </div>
 
+      {/* Creative Moodboard Panel */}
     </div>
   );
 };

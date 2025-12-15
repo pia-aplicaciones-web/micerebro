@@ -17,8 +17,6 @@ import {
   Plus,
   Trash2,
   Download,
-  Mic,
-  MicOff,
   // Navegación
   FolderOpen,
   ChevronDown,
@@ -40,9 +38,6 @@ import {
   Palette,
   Wand2,
   Bell,
-  // Comentarios
-  MessageCircle,
-  MessageSquare,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -150,8 +145,6 @@ type ToolsSidebarV2Props = {
   onUploadImage: () => void;
   onAddImageFromUrl: () => void;
   onPanToggle: () => void;
-  isListening?: boolean;
-  onToggleDictation?: () => void;
   onRenameBoard: () => void;
   onDeleteBoard: () => void;
   onOpenNotepad: (id: string) => void;
@@ -174,9 +167,6 @@ export default function ToolsSidebarV2(props: ToolsSidebarV2Props) {
     boards,
     onUploadImage,
     onAddImageFromUrl,
-    onPanToggle,
-    isListening = false,
-    onToggleDictation,
     onDeleteBoard,
     onOpenNotepad,
     onLocateElement,
@@ -674,6 +664,9 @@ export default function ToolsSidebarV2(props: ToolsSidebarV2Props) {
                 Desde URL
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-white/10" />
+              <DropdownMenuItem onClick={() => handleAdd('moodboard')} className="hover:bg-white/10">
+                Moodboard
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -686,12 +679,6 @@ export default function ToolsSidebarV2(props: ToolsSidebarV2Props) {
 
           {/* === ACCIONES === */}
           
-          <ToolButton 
-            icon={isListening ? MicOff : Mic} 
-            label={isListening ? 'Detener dictado' : 'Dictar'} 
-            onClick={onToggleDictation}
-            isRecording={isListening}
-          />
 
           <ToolButton 
             icon={PanelLeft} 
@@ -767,34 +754,6 @@ export default function ToolsSidebarV2(props: ToolsSidebarV2Props) {
               <DropdownMenuSeparator className="bg-white/10" />
               <DropdownMenuItem onClick={handleSignOut} className="hover:bg-white/10">
                 <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Comentarios */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div>
-                <ToolButton icon={MessageCircle} label="Comentarios" hasDropdown />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent side="right" className="bg-blue-700 border-white/10 text-white">
-              <DropdownMenuItem onClick={() => handleAdd('text')} className="hover:bg-white/10">
-                <Type className="mr-2 h-4 w-4" /> Texto
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleAdd('comment')} className="hover:bg-white/10">
-                <MessageSquare className="mr-2 h-4 w-4" /> Comentarios
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  handleAddElement('comment-bubble', {
-                    properties: { backgroundColor: '#fff9c4' },
-                    content: { text: '' },
-                  })
-                }
-                className="hover:bg-white/10"
-              >
-                <MessageCircle className="mr-2 h-4 w-4" /> Burbuja
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -15,7 +15,7 @@ function isImageContent(content: unknown): content is ImageContent {
 }
 
 export default function ImageElement(props: CommonElementProps) {
-  const { isSelected, properties, id, onUpdate, onEditElement, onSelectElement, content, isListening, liveTranscript } = props;
+  const { isSelected, properties, id, onUpdate, onEditElement, onSelectElement, content } = props;
   
   const imageContent: ImageContent = isImageContent(content) ? content : { url: '' };
   const imageUrl = imageContent.url; 
@@ -70,13 +70,6 @@ export default function ImageElement(props: CommonElementProps) {
     }
   };
 
-  // Soporte para dictado: insertar texto cuando está escuchando y el label está en modo edición
-  useEffect(() => {
-    if (isListening && isSelected && isEditingLabel && labelRef.current && document.activeElement === labelRef.current) {
-      document.execCommand('insertText', false, liveTranscript || '');
-      handleLabelChange();
-    }
-  }, [isListening, liveTranscript, isSelected, isEditingLabel, handleLabelChange]);
 
   const handleOpenOriginalImage = (e: React.MouseEvent) => {
     e.stopPropagation();

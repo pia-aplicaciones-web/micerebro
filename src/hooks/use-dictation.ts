@@ -1,156 +1,143 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-
-declare global {
-  interface Window {
-    SpeechRecognition: typeof SpeechRecognition;
-    webkitSpeechRecognition: typeof SpeechRecognition;
-  }
-}
-
-type UseDictationReturn = {
-  isSupported: boolean;
-  isListening: boolean;
-  interimTranscript: string;
-  finalTranscript: string;
-  toggle: () => void;
-  stop: () => void;
-  clear: () => void;
-};
+import { useEffect, useRef, useCallback } from 'react';
 
 /**
- * DICTADO PERFECTO
- * - Tiempo real (interim) sin span gris (lo entrega en texto plano)
- * - Final rápido, sin duplicaciones
- * - Cursor lo controla cada componente con use-dictation-input
+ * Hook que inserta texto dictado donde esté el cursor
+ * REGLA: CURSOR MANDA - donde esté el cursor, ahí va el dictado
  */
-export const useDictation = (): UseDictationReturn => {
-  const [isListening, setIsListening] = useState(false);
-  const [interimTranscript, setInterimTranscript] = useState('');
-  const [finalTranscript, setFinalTranscript] = useState('');
+export const useDictation = (
+  isListening: boolean,
+  transcript: string,
+  interimTranscript: string
+) => {
+  const lastTranscriptRef = useRef('');
+  const interimNodeRef = useRef<HTMLSpanElement | null>(null);
+  const savedRangeRef = useRef<Range | null>(null);
 
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const finalRef = useRef('');
-
-  const isSupported =
-    typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
-
-  const stop = useCallback(() => {
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.stop();
-      } catch {
-        // ignore
-      }
-      recognitionRef.current = null;
+  // Remover el nodo interim
+  const removeInterimNode = useCallback(() => {
+    if (interimNodeRef.current && interimNodeRef.current.parentNode) {
+      interimNodeRef.current.parentNode.removeChild(interimNodeRef.current);
+      interimNodeRef.current = null;
     }
-    setIsListening(false);
-    setInterimTranscript('');
   }, []);
 
-  const clear = useCallback(() => {
-    setInterimTranscript('');
-    setFinalTranscript('');
-    finalRef.current = '';
-  }, []);
-
-  const toggle = useCallback(() => {
-    if (!isSupported) return;
-
+  // Guardar la posición del cursor cuando empieza el dictado
+  useEffect(() => {
     if (isListening) {
-      stop();
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        savedRangeRef.current = selection.getRangeAt(0).cloneRange();
+      }
+    } else {
+      savedRangeRef.current = null;
+      removeInterimNode();
+      lastTranscriptRef.current = '';
+    }
+  }, [isListening, removeInterimNode]);
+
+  // Insertar texto en el cursor actual
+  const insertTextAtCursor = useCallback((text: string, isInterim: boolean = false) => {
+    const activeElement = document.activeElement;
+    
+    // Si es un input o textarea
+    if (activeElement instanceof HTMLInputElement || activeElement instanceof HTMLTextAreaElement) {
+      if (isInterim) return; // No mostramos interim en inputs
+      
+      const start = activeElement.selectionStart || 0;
+      const end = activeElement.selectionEnd || 0;
+      const value = activeElement.value;
+      
+      activeElement.value = value.slice(0, start) + text + value.slice(end);
+      activeElement.selectionStart = activeElement.selectionEnd = start + text.length;
+      activeElement.dispatchEvent(new Event('input', { bubbles: true }));
       return;
     }
 
-    const SpeechRecognitionAPI =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognitionAPI) return;
+    // Si es un contentEditable
+    const selection = window.getSelection();
+    if (!selection) return;
 
-    const recognition = new SpeechRecognitionAPI();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'es-ES';
-    recognition.maxAlternatives = 1;
-
-    recognition.onstart = () => {
-      finalRef.current = '';
-      setIsListening(true);
-      setInterimTranscript('');
-      setFinalTranscript('');
-    };
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = '';
-      let finalText = '';
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const text = result[0].transcript;
-        if (result.isFinal) {
-          finalText += text;
-        } else {
-          interim += text;
-        }
-      }
-
-      // Interim en vivo, sin mutar finalRef
-      setInterimTranscript(interim.trim());
-
-      // Sólo actualizar final si hay texto nuevo distinto de lo ya acumulado
-      if (finalText) {
-        const nextFinal = `${finalRef.current} ${finalText}`.trim();
-        if (nextFinal !== finalRef.current) {
-          finalRef.current = nextFinal;
-          setFinalTranscript(nextFinal);
-          setInterimTranscript('');
-        }
-      }
-    };
-
-    recognition.onend = () => {
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
-
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      if (event.error === 'no-speech' || event.error === 'aborted') {
-        return;
-      }
-      setIsListening(false);
-      recognitionRef.current = null;
-    };
-
-    recognitionRef.current = recognition;
-    try {
-      recognition.start();
-    } catch {
-      // ignore
+    let range: Range;
+    
+    // Restaurar la posición guardada o usar la actual
+    if (savedRangeRef.current) {
+      range = savedRangeRef.current;
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else if (selection.rangeCount > 0) {
+      range = selection.getRangeAt(0);
+    } else {
+      return;
     }
-  }, [isListening, isSupported, stop]);
 
+    // Verificar que estamos en un contentEditable
+    const container = range.commonAncestorContainer;
+    const editableParent = container.nodeType === Node.TEXT_NODE 
+      ? container.parentElement?.closest('[contenteditable="true"]')
+      : (container as HTMLElement).closest?.('[contenteditable="true"]');
+    
+    if (!editableParent) return;
+
+    // Remover interim anterior
+    removeInterimNode();
+
+    if (isInterim) {
+      // Crear span para texto interim (gris, cursiva)
+      const span = document.createElement('span');
+      span.style.color = '#9CA3AF';
+      span.style.fontStyle = 'italic';
+      span.textContent = text;
+      interimNodeRef.current = span;
+
+      range.insertNode(span);
+      range.setStartAfter(span);
+      range.setEndAfter(span);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    } else {
+      // Insertar texto final
+      const textNode = document.createTextNode(text);
+      range.insertNode(textNode);
+      range.setStartAfter(textNode);
+      range.setEndAfter(textNode);
+      selection.removeAllRanges();
+      selection.addRange(range);
+      
+      // Actualizar la posición guardada
+      savedRangeRef.current = range.cloneRange();
+    }
+  }, [removeInterimNode]);
+
+  // Procesar cambios en transcript (texto final)
+  useEffect(() => {
+    if (!isListening) return;
+    
+    const newText = transcript.slice(lastTranscriptRef.current.length);
+    
+    if (newText.trim()) {
+      removeInterimNode();
+      insertTextAtCursor(newText, false);
+      lastTranscriptRef.current = transcript;
+    }
+  }, [transcript, isListening, insertTextAtCursor, removeInterimNode]);
+
+  // Procesar cambios en interimTranscript
+  useEffect(() => {
+    if (!isListening) return;
+    
+    removeInterimNode();
+    
+    if (interimTranscript.trim()) {
+      insertTextAtCursor(interimTranscript, true);
+    }
+  }, [interimTranscript, isListening, insertTextAtCursor, removeInterimNode]);
+
+  // Limpiar al desmontar
   useEffect(() => {
     return () => {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
-        }
-      }
+      removeInterimNode();
     };
-  }, []);
-
-  return {
-    isSupported,
-    isListening,
-    interimTranscript,
-    finalTranscript,
-    toggle,
-    stop,
-    clear,
-  };
+  }, [removeInterimNode]);
 };
-
-export default useDictation;

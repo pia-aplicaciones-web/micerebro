@@ -16,8 +16,6 @@ import {
 import { startOfWeek, addDays, addWeeks, subWeeks, format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import html2canvas from 'html2canvas';
-import { useDictation } from '@/hooks/use-dictation';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 
 // Columnas para Menú Semanal de comidas
 const MEAL_META = [

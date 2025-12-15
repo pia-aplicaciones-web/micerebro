@@ -235,6 +235,7 @@ export function useElementManager(boardId: string, getViewportCenter: () => { x:
         const notesPos = getCenteredPosition(notesSize.width, notesSize.height);
         newElementData = { type, x: notesPos.x, y: notesPos.y, width: notesSize.width, height: notesSize.height, userId, properties: { ...baseProperties, position: notesPos, size: notesSize, backgroundColor: '#dcefe1', zIndex: -1 }, content: props?.content || { text: '', searchQuery: '' }, zIndex: -1, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }; break;
       case 'mini-notes':
+      case 'mini':
         const miniNotesSize = { width: 227, height: 378 }; // 6cm x 10cm
         const miniNotesPos = getCenteredPosition(miniNotesSize.width, miniNotesSize.height);
         newElementData = { type, x: miniNotesPos.x, y: miniNotesPos.y, width: miniNotesSize.width, height: miniNotesSize.height, userId, properties: { ...baseProperties, position: miniNotesPos, size: miniNotesSize, backgroundColor: '#f9fb6a', zIndex: -1 }, content: props?.content || { text: '', searchQuery: '' }, zIndex: -1, createdAt: serverTimestamp(), updatedAt: serverTimestamp() }; break;

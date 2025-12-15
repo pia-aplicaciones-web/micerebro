@@ -21,9 +21,6 @@ import { firebaseConfig, getFirebaseFirestore } from '@/lib/firebase';
 import { WithId, CanvasElement, Board } from '@/lib/types';
 import { validateElementsList, validateUpdateProps, validateAndRepairElement, logBugShieldError } from '@/lib/bug-shield';
 
-// Detectar si es un tablero de invitado (usa localStorage)
-const isGuestBoard = (boardId: string) => boardId.startsWith('guest_');
-
 // MODO DESARROLLO: usar localStorage en lugar de Firebase
 const DEV_MODE = false; // Cambiado a false para siempre usar Firebase
 
@@ -117,31 +114,17 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     }
 
     set({ isLoading: true, error: null });
-
-    // MODO INVITADO: usar localStorage para tableros de invitados
-    if (isGuestBoard(boardId)) {
-      console.log('👤 MODO INVITADO: usando localStorage para', boardId);
-      const board = getDevBoard(boardId);
-      const elements = getDevElements(boardId);
-      set({
-        board,
-        elements,
-        isLoading: false,
-        error: null
-      });
-      return boardId;
-    }
-
+    
     // MODO DESARROLLO: usar localStorage
     if (DEV_MODE) {
       console.log('🔧 MODO DESARROLLO: usando localStorage');
       const board = getDevBoard(boardId);
       const elements = getDevElements(boardId);
-      set({
-        board,
-        elements,
-        isLoading: false,
-        error: null
+      set({ 
+        board, 
+        elements, 
+        isLoading: false, 
+        error: null 
       });
       return boardId;
     }
@@ -368,19 +351,6 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const { board, elements } = get();
     if (!board) return;
 
-    // MODO INVITADO: usar localStorage para tableros de invitados
-    if (isGuestBoard(board.id)) {
-      const newElement: WithId<CanvasElement> = {
-        ...element,
-        id: `guest-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      } as WithId<CanvasElement>;
-      const newElements = [...elements, newElement];
-      set({ elements: newElements });
-      saveDevElements(board.id, newElements);
-      console.log('👤 INVITADO: Elemento añadido', newElement.id);
-      return;
-    }
-
     // MODO DESARROLLO: usar localStorage
     if (DEV_MODE) {
       const newElement: WithId<CanvasElement> = {
@@ -421,19 +391,9 @@ export const useBoardStore = create<BoardState>((set, get) => ({
     const { board, elements } = get();
     if (!board) return;
 
-    // MODO INVITADO: usar localStorage para tableros de invitados
-    if (isGuestBoard(board.id)) {
-      const newElements = elements.map(el =>
-        el.id === elementId ? { ...el, ...updates } : el
-      );
-      set({ elements: newElements });
-      saveDevElements(board.id, newElements);
-      return;
-    }
-
     // MODO DESARROLLO: usar localStorage
     if (DEV_MODE) {
-      const newElements = elements.map(el =>
+      const newElements = elements.map(el => 
         el.id === elementId ? { ...el, ...updates } : el
       );
       set({ elements: newElements });
@@ -466,15 +426,6 @@ export const useBoardStore = create<BoardState>((set, get) => ({
   deleteElement: async (elementId: string) => {
     const { board, elements } = get();
     if (!board) return;
-
-    // MODO INVITADO: usar localStorage para tableros de invitados
-    if (isGuestBoard(board.id)) {
-      const newElements = elements.filter(el => el.id !== elementId);
-      set({ elements: newElements });
-      saveDevElements(board.id, newElements);
-      console.log('👤 INVITADO: Elemento eliminado', elementId);
-      return;
-    }
 
     // MODO DESARROLLO: usar localStorage
     if (DEV_MODE) {

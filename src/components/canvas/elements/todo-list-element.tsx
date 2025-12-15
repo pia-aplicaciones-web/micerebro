@@ -34,7 +34,6 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 
 // Paletas expandidas con texto oscuro del mismo tono (NO usar negro)
 const EXTENDED_PALETTES = {
@@ -98,10 +97,6 @@ export default function TodoListElement(props: CommonElementProps) {
     deleteElement,
     onLocateElement,
     onEditComment,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript
   } = props;
 
   const { toast } = useToast();
@@ -326,17 +321,6 @@ export default function TodoListElement(props: CommonElementProps) {
               onClick={(e) => { e.stopPropagation(); onEditElement(id); }}
               onFocusCapture={() => onEditElement(id)}
             />
-            {isListening && isSelected && (
-                <useDictationInput
-                    elementRef={titleRef}
-                    isListening={isListening}
-                    liveTranscript={liveTranscript}
-                    finalTranscript={finalTranscript}
-                    interimTranscript={interimTranscript}
-                    isSelected={isSelected}
-                    enabled={true}
-                />
-            )}
           </div>
 
           {/* Derecha: Botones de Acción */}
@@ -469,17 +453,6 @@ export default function TodoListElement(props: CommonElementProps) {
                             onClick={(e) => { e.stopPropagation(); onEditElement(id); }}
                             onFocusCapture={() => onEditElement(id)}
                           />
-                          {isListening && isSelected && (
-                              <useDictationInput
-                                  elementRef={provided.innerRef.querySelector('input')}
-                                  isListening={isListening}
-                                  liveTranscript={liveTranscript}
-                                  finalTranscript={finalTranscript}
-                                  interimTranscript={interimTranscript}
-                                  isSelected={isSelected}
-                                  enabled={true}
-                              />
-                          )}
 
                           {/* Botón Borrar Tarea */}
                           {isSelected && (
@@ -527,17 +500,6 @@ export default function TodoListElement(props: CommonElementProps) {
             onClick={(e) => { e.stopPropagation(); onEditElement(id); }}
             onFocusCapture={() => onEditElement(id)}
           />
-          {isListening && isSelected && (
-              <useDictationInput
-                  elementRef={newItemRef}
-                  isListening={isListening}
-                  liveTranscript={liveTranscript}
-                  finalTranscript={finalTranscript}
-                  interimTranscript={interimTranscript}
-                  isSelected={isSelected}
-                  enabled={true}
-              />
-          )}
           <Button
             onClick={(e) => {
               e.stopPropagation();

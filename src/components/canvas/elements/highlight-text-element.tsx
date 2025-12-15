@@ -3,7 +3,6 @@
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import type { CommonElementProps } from '@/lib/types';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 import ContentEditable from 'react-contenteditable';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Paintbrush } from 'lucide-react';
@@ -61,21 +60,12 @@ const EXTENDED_PALETTES = {
   emeraldVeryLight: { bg: '#ECFDF5', text: '#064E3B', name: 'Esmeralda Muy Claro' },
 };
 
-export default function HighlightTextElement({ id, content, properties, onUpdate, onSelectElement, isSelected, isListening, liveTranscript, finalTranscript, interimTranscript, isPreview }: CommonElementProps) {
+export default function HighlightTextElement({ id, content, properties, onUpdate, onSelectElement, isSelected, isPreview }: CommonElementProps) {
   const [text, setText] = useState((content as any)?.text || '');
   const [highlightColor, setHighlightColor] = useState(properties?.backgroundColor || EXTENDED_PALETTES.yellow.bg);
   const contentRef = useRef<HTMLDivElement>(null);
   const elementRef = useRef<HTMLDivElement>(null);
 
-  useDictationInput({
-    elementRef: elementRef as React.RefObject<HTMLElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: true,
-  });
 
   useEffect(() => {
     const contentData = content as any;

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAutoSave } from '@/hooks/use-auto-save';
 import { SaveStatusIndicator } from '@/components/canvas/save-status-indicator';
-import { useDictationInput } from '@/hooks/use-dictation-input';
 
 // Acepta CommonElementProps
 export default function CommentElement(props: CommonElementProps) {
@@ -34,10 +33,6 @@ export default function CommentElement(props: CommonElementProps) {
     parentId,
     isSelected,
     onSelectElement,
-    isListening,
-    liveTranscript,
-    finalTranscript,
-    interimTranscript,
   } = props;
   
   const safeProperties = typeof properties === 'object' && properties !== null ? properties : {};
@@ -98,16 +93,6 @@ export default function CommentElement(props: CommonElementProps) {
     setIsEditing(false);
   };
 
-  // Soporte para dictado en el input de nombre
-  useDictationInput({
-    elementRef: nameInputRef as React.RefObject<HTMLElement | HTMLInputElement | HTMLTextAreaElement>,
-    isListening: isListening || false,
-    liveTranscript: liveTranscript || '',
-    finalTranscript: finalTranscript || '',
-    interimTranscript: interimTranscript || '',
-    isSelected: isSelected || false,
-    enabled: isEditing, // Solo cuando está en modo edición
-  });
 
   // Diseño mejorado: Localizador arrastrable con nombre visible
   return (
